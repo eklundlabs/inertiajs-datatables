@@ -36,13 +36,13 @@ export function useDataTable(resource: DataTableResource) {
     const [selectedKeys, setSelectedKeys] = useState<(string | number)[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const allKeysAreSelected = useMemo(() => {
-        const allRowIds = resource.data.data.map((row) => row.id);
+    const allRowsAreSelected = useMemo(() => {
+        const allRowIds = resource.rows.map((row) => row.id);
         return (
             allRowIds.length > 0 &&
             allRowIds.every((id) => selectedKeys.includes(id))
         );
-    }, [selectedKeys, resource.data.data]);
+    }, [selectedKeys]);
 
     const selectRow = (row: DataTableRow) => { setSelectedKeys([...selectedKeys, row.id]) };
 
@@ -54,7 +54,7 @@ export function useDataTable(resource: DataTableResource) {
             isLastPage,
             isLoading,
             selectedKeys,
-            allKeysAreSelected,
+            allRowsAreSelected,
             searchQuery,
         },
 
@@ -67,7 +67,7 @@ export function useDataTable(resource: DataTableResource) {
 }
 
 export function DataTable({ resource }: { resource: DataTableResource }) {
-    const dataTable = useDataTable(resource);
+    const table = useDataTable(resource);
 
     const getCurrentParams = (): Record<string, string | number> => {
         const currentParams = new URLSearchParams(window.location.search);
@@ -79,7 +79,7 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
     };
 
     const updateTable = (params: Record<string, string | number> = {}) => {
-        dataTable.setIsLoading(true);
+        table.setIsLoading(true);
 
         const allParams = getCurrentParams();
 
@@ -90,10 +90,10 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                 preserveState: true,
                 preserveScroll: true,
                 onBefore: () => {
-                    dataTable.setIsLoading(true);
+                    table.setIsLoading(true);
                 },
                 onSuccess: () => {
-                    dataTable.setIsLoading(false);
+                    table.setIsLoading(false);
                 },
             },
         );
@@ -111,28 +111,28 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
         router.post(
             `/data-tables/${resource.table}/action/${action.name}`,
             {
-                keys: dataTable.state.selectedKeys,
+                keys: table.state.selectedKeys,
             },
             {
                 onSuccess: () => {
-                    dataTable.setSelectedKeys([]);
+                    table.setSelectedKeys([]);
                 },
             },
         );
     };
 
     const toggleSelectAll = (checked: string | boolean) => {
-        checked ? dataTable.setSelectedKeys(
+        checked ? table.setSelectedKeys(
             resource.data.data.map((row) => row.id)
-        ) : dataTable.setSelectedKeys([]);
+        ) : table.setSelectedKeys([]);
     };
 
     useEffect(() => {
         const timer = setTimeout(() => {
             const allParams = getCurrentParams();
 
-            if (dataTable.state.searchQuery) {
-                allParams['search_query'] = dataTable.state.searchQuery;
+            if (table.state.searchQuery) {
+                allParams['search_query'] = table.state.searchQuery;
             } else {
                 delete allParams['search_query'];
             }
@@ -144,21 +144,21 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                     preserveState: true,
                     preserveScroll: true,
                     onBefore: () => {
-                        dataTable.setIsLoading(true);
+                        table.setIsLoading(true);
                     },
                     onSuccess: () => {
-                        dataTable.setIsLoading(false);
+                        table.setIsLoading(false);
                     },
                 },
             );
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [dataTable.state.searchQuery]);
+    }, [table.state.searchQuery]);
 
     return (
         <div className="relative">
-            {dataTable.state.isLoading && (
+            {table.state.isLoading && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-100/30"></div>
             )}
 
@@ -167,15 +167,15 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                     className="max-w-sm"
                     type="search"
                     placeholder="Search"
-                    value={dataTable.state.searchQuery}
-                    onChange={(e) => dataTable.setSearchQuery(e.target.value)}
+                    value={table.state.searchQuery}
+                    onChange={(e) => table.setSearchQuery(e.target.value)}
                 />
                 {resource.actions.length > 0 && (
                     <div className="ml-auto">
                         {resource.actions.map((action, index) => {
                             return (
                                 <Button
-                                    disabled={dataTable.state.selectedKeys.length < 1}
+                                    disabled={table.state.selectedKeys.length < 1}
                                     onClick={() => handleAction(action)}
                                     key={index}
                                     size="sm"
@@ -194,7 +194,7 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                         <th className="id-th">
                             <input
                                 type="checkbox"
-                                checked={dataTable.state.allKeysAreSelected}
+                                checked={table.state.allRowsAreSelected}
                                 onChange={(e) => toggleSelectAll(e.target.checked)}
                             />
                         </th>
@@ -226,10 +226,10 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                                 <td className="id-td">
                                     <input
                                         type="checkbox"
-                                        checked={dataTable.state.selectedKeys.includes(row.id)}
+                                        checked={table.state.selectedKeys.includes(row.id)}
                                         onChange={(e) => e.target.checked ?
-                                            dataTable.selectRow(row) :
-                                            dataTable.deselectRow(row)
+                                            table.selectRow(row) :
+                                            table.deselectRow(row)
                                         }
                                     />
                                 </td>
@@ -297,7 +297,7 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                     <Button
                         variant="outline"
                         size="icon"
-                        disabled={dataTable.state.isFirstPage}
+                        disabled={table.state.isFirstPage}
                         onClick={() => updateTable({ page: 1 })}
                         title="First page"
                     >
@@ -307,7 +307,7 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                     <Button
                         variant="outline"
                         size="icon"
-                        disabled={dataTable.state.isFirstPage}
+                        disabled={table.state.isFirstPage}
                         onClick={() =>
                             updateTable({
                                 page: resource.data.current_page - 1,
@@ -326,7 +326,7 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                     <Button
                         variant="outline"
                         size="icon"
-                        disabled={dataTable.state.isLastPage}
+                        disabled={table.state.isLastPage}
                         onClick={() =>
                             updateTable({
                                 page: resource.data.current_page + 1,
@@ -340,7 +340,7 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                     <Button
                         variant="outline"
                         size="icon"
-                        disabled={dataTable.state.isLastPage}
+                        disabled={table.state.isLastPage}
                         onClick={() =>
                             updateTable({ page: resource.data.last_page })
                         }

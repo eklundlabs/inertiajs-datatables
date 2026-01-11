@@ -33,6 +33,7 @@ export type DataTableRow = {
 
 export interface DataTableResource {
     table: string;
+    rows: DataTableRow[];
     columns: DataTableColumn[];
     actions: DataTableAction[];
     data: DataTableData;

@@ -71,6 +71,7 @@ abstract class Table
 
         return [
             'table' => base64_encode(get_class($this)),
+            'rows' => $paginatorArray['data'],
             'columns' => array_map(fn ($column) => $column->toResponse(), $this->columns()),
             'actions' => array_map(fn ($action) => $action->toResponse(), $this->actions()),
             'perPageOptions' => $this->perPageOptions,
