@@ -36,15 +36,30 @@ export function useDataTable(resource: DataTableResource) {
     const [selectedKeys, setSelectedKeys] = useState<(string | number)[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
+    const allKeysAreSelected = useMemo(() => {
+        const allRowIds = resource.data.data.map((row) => row.id);
+        return (
+            allRowIds.length > 0 &&
+            allRowIds.every((id) => selectedKeys.includes(id))
+        );
+    }, [selectedKeys, resource.data.data]);
+
+    const selectRow = (row: DataTableRow) => { setSelectedKeys([...selectedKeys, row.id]) };
+
+    const deselectRow = (row: DataTableRow) => { setSelectedKeys(selectedKeys.filter((key: string|number) => key !== row.id)) };
+
     return {
         state: {
             isFirstPage,
             isLastPage,
-            selectedKeys,
             isLoading,
+            selectedKeys,
+            allKeysAreSelected,
             searchQuery,
         },
 
+        selectRow,
+        deselectRow,
         setSearchQuery,
         setSelectedKeys,
         setIsLoading,
@@ -53,14 +68,6 @@ export function useDataTable(resource: DataTableResource) {
 
 export function DataTable({ resource }: { resource: DataTableResource }) {
     const dataTable = useDataTable(resource);
-
-    const allKeysSelected = useMemo(() => {
-        const allRowIds = resource.data.data.map((row) => row.id);
-        return (
-            allRowIds.length > 0 &&
-            allRowIds.every((id) => dataTable.state.selectedKeys.includes(id))
-        );
-    }, [dataTable.state.selectedKeys, resource.data.data]);
 
     const getCurrentParams = (): Record<string, string | number> => {
         const currentParams = new URLSearchParams(window.location.search);
@@ -112,17 +119,6 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                 },
             },
         );
-    };
-
-    const handleRowSelection = (
-        checked: string | boolean,
-        row: DataTableRow,
-    ) => {
-        if (checked) {
-            dataTable.setSelectedKeys([...dataTable.state.selectedKeys, row.id]);
-        } else {
-            dataTable.setSelectedKeys(dataTable.state.selectedKeys.filter((key: string|number) => key !== row.id));
-        }
     };
 
     const toggleSelectAll = (checked: string | boolean) => {
@@ -198,7 +194,7 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                         <th className="id-th">
                             <input
                                 type="checkbox"
-                                checked={allKeysSelected}
+                                checked={dataTable.state.allKeysAreSelected}
                                 onChange={(e) => toggleSelectAll(e.target.checked)}
                             />
                         </th>
@@ -231,8 +227,9 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                                     <input
                                         type="checkbox"
                                         checked={dataTable.state.selectedKeys.includes(row.id)}
-                                        onChange={(e) =>
-                                            handleRowSelection(e.target.value, row)
+                                        onChange={(e) => e.target.checked ?
+                                            dataTable.selectRow(row) :
+                                            dataTable.deselectRow(row)
                                         }
                                     />
                                 </td>
