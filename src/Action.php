@@ -1,6 +1,7 @@
 <?php
+declare(strict_types=1);
 
-namespace Eklundlabs\InertiaDataTable;
+namespace Eklundlabs\InertiaDatatable;
 
 use Closure;
 
@@ -12,7 +13,7 @@ class Action
 
     public string $confirmationText = '';
 
-    public function __construct(
+    final private function __construct(
         public string $label,
         protected Closure $handle
     ) {}

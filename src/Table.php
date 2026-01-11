@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
 
-namespace Eklundlabs\InertiaDataTable;
+namespace Eklundlabs\InertiaDatatable;
 
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Searchable\Search;
 
@@ -10,6 +12,8 @@ abstract class Table
     protected ?string $resource = null;
 
     protected array $perPageOptions = [10, 25, 50, 100];
+
+    final private function __construct() {}
 
     abstract public function columns(): array;
 
@@ -51,7 +55,7 @@ abstract class Table
 
         $searchableColumns = collect($this->columns())
             ->filter(fn (Column $column) => $column->searchable)
-            ->pluck(fn (Column $column) => $column->name());
+            ->pluck('column');
 
         $query = $resource->query();
 
@@ -82,11 +86,15 @@ abstract class Table
 
     /**
      * @param array<Model> $rows
-     * @return array
+     * @throws Exception
      */
     protected function transformRows(array $rows): array
     {
         return array_map(function ($row) {
+            if (! isset($row->id)) {
+                throw new \Exception('Row id is required.');
+            }
+
             $transformed = ['id' => $row->id];
 
             foreach ($this->columns() as $column) {

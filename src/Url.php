@@ -1,10 +1,11 @@
 <?php
+declare(strict_types=1);
 
-namespace Eklundlabs\InertiaDataTable;
+namespace Eklundlabs\InertiaDatatable;
 
 class Url
 {
-    public function __construct(
+    final private function __construct(
         public string $url,
         public ?string $text = null
     ) {}

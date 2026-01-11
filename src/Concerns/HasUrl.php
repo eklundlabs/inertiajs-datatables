@@ -1,6 +1,7 @@
 <?php
+declare(strict_types=1);
 
-namespace Eklundlabs\InertiaDataTable\Concerns;
+namespace Eklundlabs\InertiaDatatable\Concerns;
 
 use Closure;
 

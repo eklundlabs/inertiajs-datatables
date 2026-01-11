@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Eklundlabs\InertiaDatatable;
 
@@ -9,7 +10,7 @@ abstract class Column
 {
     public bool $searchable = false;
 
-    public function __construct(
+    final private function __construct(
         public string $column,
         public string $label,
     ) {}
