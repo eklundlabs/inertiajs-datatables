@@ -17,7 +17,7 @@ abstract class Table
 
     public static function make(): array
     {
-        return new static()->toResponse();
+        return (new static())->toResponse();
     }
 
     public function getAction(string $key): ?Action
@@ -56,10 +56,10 @@ abstract class Table
         $query = $resource->query();
 
         if (request('search_query') && count($searchableColumns)) {
-            $s = new Search()
-                ->registerModel(get_class($resource), $searchableColumns->toArray())
-                ->limitAspectResults(100)
-                ->search(request('search_query'));
+            $s = (new Search())
+                    ->registerModel(get_class($resource), $searchableColumns->toArray())
+                    ->limitAspectResults(100)
+                    ->search(request('search_query'));
 
             $query->whereIn('id', $s->map->searchable->pluck('id')->toArray());
         }
