@@ -168,22 +168,23 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-100/30"></div>
             )}
 
-            <div className="mb-4 flex">
+            <div className="flex flex-col justify-between md:flex-row md:items-center md:space-x-4 mb-4">
                 <input
-                    className="max-w-sm border"
+                    className="w-full md:max-w-md border rounded-md px-3 py-1.5 text-sm"
                     type="search"
                     placeholder="Search"
                     value={table.state.search}
                     onChange={(e) => table.setSearch(e.target.value)}
                 />
                 {resource.actions.length > 0 && (
-                    <div className="ml-auto">
+                    <div className="">
                         {resource.actions.map((action, index) => {
                             return (
                                 <button
                                     disabled={table.state.selectedKeys.length < 1}
                                     onClick={() => handleAction(action)}
                                     key={index}
+                                    className="border rounded-md px-3 py-1.5 font-medium text-sm disabled:bg-gray-50 disabled:cursor-not-allowed"
                                 >
                                     {action.label}
                                 </button>
@@ -192,10 +193,10 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                     </div>
                 )}
             </div>
-            <table className="id-table">
-                <thead className="id-thead">
-                    <tr className="id-tr">
-                        <th className="id-th">
+            <table className="relative min-w-full divide-y divide-gray-300 dark:divide-white/15">
+                <thead>
+                    <tr>
+                        <th className="w-8 px-3.5">
                             <input
                                 type="checkbox"
                                 checked={table.state.allRowsAreSelected}
@@ -205,29 +206,29 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
 
                         {resource.columns.map((column, index) => {
                             return (
-                                <th key={index} className="inertia-datatable-th">
+                                <th key={index} className="px-3.5 py-4 text-left">
                                     {column.label}
                                 </th>
                             );
                         })}
                     </tr>
                 </thead>
-                <tbody className="id-tbody">
+                <tbody className="divide-y divide-gray-200 dark:divide-white/10">
                     {resource.data.data.length === 0 ? (
-                        <tr className="id-tr">
+                        <tr className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                             <td
                                 colSpan={resource.columns.length + 1}
-                                className="id-td"
+                                className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400"
                             >
-                                <p className="id-no-results">
+                                <p>
                                     No results found
                                 </p>
                             </td>
                         </tr>
                     ) : (
                         resource.data.data.map((row, index) => (
-                            <tr className="id-tr" key={index}>
-                                <td className="id-td">
+                            <tr key={index}>
+                                <td className="w-8 px-3.5 py-4">
                                     <input
                                         type="checkbox"
                                         checked={table.state.selectedKeys.includes(row.id)}
@@ -242,7 +243,7 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                                     const _column = row[column.column];
 
                                     return (
-                                        <td className="id-td" key={column.column}>
+                                        <td className="px-3.5 py-4" key={column.column}>
                                             {_column.url ? (
                                                 <Link href={_column.url.link}>{_column.value}</Link>
                                             ) : (
