@@ -1,34 +1,17 @@
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { Link, router } from '@inertiajs/react';
-import { useDebounce } from '@uidotdev/usehooks';
 import {
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
 } from 'lucide-react';
-import React, { useEffect, useMemo, useState, useLayoutEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { DataTableAction, DataTableCell, DataTableQuery, DataTableResource, DataTableRow } from './index';
 
 export function useDataTable(resource: DataTableResource) {
-    const [search, setSearch] = useState<string>(resource.searchQuery ?? '');
+    const [search, _setSearch] = useState<string>(resource.searchQuery ?? '');
+    const [searchTimeoutTimer, setSearchTimeoutTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+
     const [perPage, _setPerPage] = useState<string | number>(resource.data.per_page);
 
     const isFirstPage = resource.data.current_page === 1;
@@ -39,11 +22,18 @@ export function useDataTable(resource: DataTableResource) {
 
     const URLParams = new URLSearchParams(window.location.search);
 
-    const [query, setQuery] = useState<DataTableQuery>({
+    const [query, _setQuery] = useState<DataTableQuery>({
         page: URLParams.get('page') ?? undefined,
         per_page: URLParams.get('per_page') ?? undefined,
-        search_query: resource.searchQuery ?? undefined,
+        search_query: URLParams.get('search_query') ?? undefined,
     });
+
+    const setQuery = (query: {[key: string]: number | string | undefined}) => {
+        _setQuery(q => ({
+            ...q,
+            ...query
+        }));
+    }
 
     const allRowsAreSelected = useMemo(() => {
         const allRowIds = resource.rows.map((row) => row.id);
@@ -56,11 +46,31 @@ export function useDataTable(resource: DataTableResource) {
     const setPerPage = (per_page: number | string) => {
         _setPerPage(per_page);
 
-        setQuery(q => ({
-            ...q,
+        setQuery({
             per_page: per_page,
             page: 1,
-        }));
+        });
+    }
+
+    const setPage = (page: number | string) => {
+        setQuery({page});
+    }
+
+    const setSearch = (query: string) => {
+        if (searchTimeoutTimer) {
+            clearTimeout(searchTimeoutTimer);
+        }
+
+        _setSearch(query);
+
+        const timer = setTimeout(() => {
+            setQuery({
+                search_query: query || undefined,
+                page: 1,
+            });
+        }, 500);
+
+        setSearchTimeoutTimer(timer);
     }
 
     const selectRow = (row: DataTableRow) => { setSelectedKeys([...selectedKeys, row.id]) };
@@ -88,17 +98,17 @@ export function useDataTable(resource: DataTableResource) {
         updateTable()
     }, [query]);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setQuery(q => ({
-                ...q,
-                search_query: search || undefined,
-                page: 1,
-            }));
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }, [search]);
+    // useEffect(() => {
+    //     const timer = setTimeout(() => {
+    //         setQuery(q => ({
+    //             ...q,
+    //             search_query: search || undefined,
+    //             page: 1,
+    //         }));
+    //     }, 500);
+    //
+    //     return () => clearTimeout(timer);
+    // }, [search]);
 
     return {
         state: {
@@ -111,6 +121,7 @@ export function useDataTable(resource: DataTableResource) {
             perPage,
         },
 
+        setPage,
         setPerPage,
         setSearch,
         selectRow,
@@ -158,8 +169,8 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
             )}
 
             <div className="mb-4 flex">
-                <Input
-                    className="max-w-sm"
+                <input
+                    className="max-w-sm border"
                     type="search"
                     placeholder="Search"
                     value={table.state.search}
@@ -169,15 +180,13 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                     <div className="ml-auto">
                         {resource.actions.map((action, index) => {
                             return (
-                                <Button
+                                <button
                                     disabled={table.state.selectedKeys.length < 1}
                                     onClick={() => handleAction(action)}
                                     key={index}
-                                    size="sm"
-                                    variant="outline"
                                 >
                                     {action.label}
-                                </Button>
+                                </button>
                             );
                         })}
                     </div>
@@ -267,81 +276,45 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                             {resource.perPageOptions.map((perPageOption) => (
                                 <option key={perPageOption}>{perPageOption}</option>
                             ))}
-
-                            {/*<SelectTrigger className="w-[70px]">*/}
-                            {/*    <SelectValue />*/}
-                            {/*</SelectTrigger>*/}
-                            {/*<SelectContent>*/}
-                            {/*    {resource.perPageOptions.map(*/}
-                            {/*        (perPageOption) => (*/}
-                            {/*            <SelectItem*/}
-                            {/*                key={perPageOption}*/}
-                            {/*                value={perPageOption.toString()}*/}
-                            {/*            >*/}
-                            {/*                {perPageOption}*/}
-                            {/*            </SelectItem>*/}
-                            {/*        ),*/}
-                            {/*    )}*/}
-                            {/*</SelectContent>*/}
                         </select>
                     </div>
                 </div>
 
                 <div className="mt-4 flex items-center justify-center gap-2 md:mt-0 md:ml-8">
-                    <Button
-                        variant="outline"
-                        size="icon"
+                    <button
                         disabled={table.state.isFirstPage}
-                        onClick={() => updateTable({ page: 1 })}
+                        onClick={() => table.setPage(1)}
                         title="First page"
                     >
                         <ChevronsLeft className="h-4 w-4" />
-                    </Button>
+                    </button>
 
-                    <Button
-                        variant="outline"
-                        size="icon"
+                    <button
                         disabled={table.state.isFirstPage}
-                        onClick={() =>
-                            updateTable({
-                                page: resource.data.current_page - 1,
-                            })
-                        }
-                        title="Previous page"
+                        onClick={() => table.setPage(resource.data.current_page - 1)}
                     >
                         <ChevronLeft className="h-4 w-4" />
-                    </Button>
+                    </button>
 
                     <div className="px-2 text-sm text-muted-foreground">
                         Page {resource.data.current_page} of{' '}
                         {resource.data.last_page}
                     </div>
 
-                    <Button
-                        variant="outline"
-                        size="icon"
+                    <button
                         disabled={table.state.isLastPage}
-                        onClick={() =>
-                            updateTable({
-                                page: resource.data.current_page + 1,
-                            })
-                        }
-                        title="Next page"
+                        onClick={() => table.setPage(resource.data.current_page + 1)}
                     >
                         <ChevronRight className="h-4 w-4" />
-                    </Button>
+                    </button>
 
-                    <Button
-                        variant="outline"
-                        size="icon"
+                    <button
                         disabled={table.state.isLastPage}
-                        onClick={() =>
-                            updateTable({ page: resource.data.last_page })
-                        }
+                        onClick={() => table.setPage(resource.data.last_page)}
                         title="Last page"
                     >
                         <ChevronsRight className="h-4 w-4" />
-                    </Button>
+                    </button>
                 </div>
             </div>
         </div>

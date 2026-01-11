@@ -9,7 +9,7 @@ abstract class Table
 {
     protected ?string $resource = null;
 
-    protected array $perPageOptions = [10, 25, 50, 100];
+    protected array $perPageOptions = [1, 2, 3, 25, 50, 100];
 
     abstract public function columns(): array;
 
