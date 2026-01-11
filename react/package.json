@@ -1,0 +1,27 @@
+{
+  "name": "@eklundlabs/inertia-datatable-react",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.ts",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "@types/react": "^19.2.8",
+    "react": "^19.2.3",
+    "@inertiajs/react": "^2.1.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.8",
+    "react": "^19.2.3",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "lucide-react": "^0.562.0"
+  }
+}
