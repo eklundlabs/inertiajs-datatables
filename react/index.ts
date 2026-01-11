@@ -31,6 +31,12 @@ export type DataTableRow = {
     id: string | number;
 } & Record<string, DataTableCell>;
 
+export type DataTableQuery = {
+    page: string | null | number | undefined;
+    per_page: string | null | number | undefined;
+    search_query: string | undefined;
+}
+
 export interface DataTableResource {
     table: string;
     rows: DataTableRow[];

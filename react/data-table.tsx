@@ -24,17 +24,26 @@ import {
     ChevronsLeft,
     ChevronsRight,
 } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
-import { DataTableAction, DataTableCell, DataTableResource, DataTableRow } from './index';
+import React, { useEffect, useMemo, useState, useLayoutEffect } from 'react';
+import { DataTableAction, DataTableCell, DataTableQuery, DataTableResource, DataTableRow } from './index';
 
 export function useDataTable(resource: DataTableResource) {
-    const [searchQuery, setSearchQuery] = useState(resource.searchQuery ?? '');
+    const [search, setSearch] = useState<string>(resource.searchQuery ?? '');
+    const [perPage, _setPerPage] = useState<string | number>(resource.data.per_page);
 
     const isFirstPage = resource.data.current_page === 1;
     const isLastPage = resource.data.current_page === resource.data.last_page;
 
     const [selectedKeys, setSelectedKeys] = useState<(string | number)[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const URLParams = new URLSearchParams(window.location.search);
+
+    const [query, setQuery] = useState<DataTableQuery>({
+        page: URLParams.get('page') ?? undefined,
+        per_page: URLParams.get('per_page') ?? undefined,
+        search_query: resource.searchQuery ?? undefined,
+    });
 
     const allRowsAreSelected = useMemo(() => {
         const allRowIds = resource.rows.map((row) => row.id);
@@ -44,9 +53,52 @@ export function useDataTable(resource: DataTableResource) {
         );
     }, [selectedKeys]);
 
+    const setPerPage = (per_page: number | string) => {
+        _setPerPage(per_page);
+
+        setQuery(q => ({
+            ...q,
+            per_page: per_page,
+            page: 1,
+        }));
+    }
+
     const selectRow = (row: DataTableRow) => { setSelectedKeys([...selectedKeys, row.id]) };
 
     const deselectRow = (row: DataTableRow) => { setSelectedKeys(selectedKeys.filter((key: string|number) => key !== row.id)) };
+
+    const updateTable = () => {
+        setIsLoading(true);
+
+        router.get(
+            window.location.pathname,
+            query,
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onFinish: () => {
+                    setIsLoading(false);
+                },
+            },
+        );
+    };
+
+    useEffect(() => {
+        updateTable()
+    }, [query]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setQuery(q => ({
+                ...q,
+                search_query: search || undefined,
+                page: 1,
+            }));
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [search]);
 
     return {
         state: {
@@ -55,12 +107,14 @@ export function useDataTable(resource: DataTableResource) {
             isLoading,
             selectedKeys,
             allRowsAreSelected,
-            searchQuery,
+            search,
+            perPage,
         },
 
+        setPerPage,
+        setSearch,
         selectRow,
         deselectRow,
-        setSearchQuery,
         setSelectedKeys,
         setIsLoading,
     }
@@ -68,36 +122,6 @@ export function useDataTable(resource: DataTableResource) {
 
 export function DataTable({ resource }: { resource: DataTableResource }) {
     const table = useDataTable(resource);
-
-    const getCurrentParams = (): Record<string, string | number> => {
-        const currentParams = new URLSearchParams(window.location.search);
-        const allParams: Record<string, string | number> = {};
-        currentParams.forEach((value, key) => {
-            allParams[key] = value;
-        });
-        return allParams;
-    };
-
-    const updateTable = (params: Record<string, string | number> = {}) => {
-        table.setIsLoading(true);
-
-        const allParams = getCurrentParams();
-
-        router.get(
-            window.location.pathname,
-            { ...allParams, ...params } as Record<string, string | number>,
-            {
-                preserveState: true,
-                preserveScroll: true,
-                onBefore: () => {
-                    table.setIsLoading(true);
-                },
-                onSuccess: () => {
-                    table.setIsLoading(false);
-                },
-            },
-        );
-    };
 
     const handleAction = (action: DataTableAction) => {
         const confirmation = action.require_confirmation
@@ -127,35 +151,6 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
         ) : table.setSelectedKeys([]);
     };
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            const allParams = getCurrentParams();
-
-            if (table.state.searchQuery) {
-                allParams['search_query'] = table.state.searchQuery;
-            } else {
-                delete allParams['search_query'];
-            }
-
-            router.get(
-                window.location.pathname,
-                { ...allParams } as Record<string, string | number>,
-                {
-                    preserveState: true,
-                    preserveScroll: true,
-                    onBefore: () => {
-                        table.setIsLoading(true);
-                    },
-                    onSuccess: () => {
-                        table.setIsLoading(false);
-                    },
-                },
-            );
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }, [table.state.searchQuery]);
-
     return (
         <div className="relative">
             {table.state.isLoading && (
@@ -167,8 +162,8 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                     className="max-w-sm"
                     type="search"
                     placeholder="Search"
-                    value={table.state.searchQuery}
-                    onChange={(e) => table.setSearchQuery(e.target.value)}
+                    value={table.state.search}
+                    onChange={(e) => table.setSearch(e.target.value)}
                 />
                 {resource.actions.length > 0 && (
                     <div className="ml-auto">
@@ -265,31 +260,30 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                         <span className="text-sm text-muted-foreground">
                             Rows per page:
                         </span>
-                        <Select
-                            value={
-                                resource.data.per_page.toString() ??
-                                resource.perPageOptions[0].toString()
-                            }
-                            onValueChange={(value) =>
-                                updateTable({ per_page: value, page: 1 })
-                            }
+                        <select
+                            value={table.state.perPage}
+                            onChange={(e) => table.setPerPage(e.target.value)}
                         >
-                            <SelectTrigger className="w-[70px]">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {resource.perPageOptions.map(
-                                    (perPageOption) => (
-                                        <SelectItem
-                                            key={perPageOption}
-                                            value={perPageOption.toString()}
-                                        >
-                                            {perPageOption}
-                                        </SelectItem>
-                                    ),
-                                )}
-                            </SelectContent>
-                        </Select>
+                            {resource.perPageOptions.map((perPageOption) => (
+                                <option key={perPageOption}>{perPageOption}</option>
+                            ))}
+
+                            {/*<SelectTrigger className="w-[70px]">*/}
+                            {/*    <SelectValue />*/}
+                            {/*</SelectTrigger>*/}
+                            {/*<SelectContent>*/}
+                            {/*    {resource.perPageOptions.map(*/}
+                            {/*        (perPageOption) => (*/}
+                            {/*            <SelectItem*/}
+                            {/*                key={perPageOption}*/}
+                            {/*                value={perPageOption.toString()}*/}
+                            {/*            >*/}
+                            {/*                {perPageOption}*/}
+                            {/*            </SelectItem>*/}
+                            {/*        ),*/}
+                            {/*    )}*/}
+                            {/*</SelectContent>*/}
+                        </select>
                     </div>
                 </div>
 
