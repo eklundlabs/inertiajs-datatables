@@ -1,5 +1,7 @@
 > [!NOTE]
-> This package currently only supports react
+> Limitations
+> - Currently only react is supported
+> - Only one table per page
 
 ## Prerequisites
 
