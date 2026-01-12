@@ -13,7 +13,9 @@
   "license": "MIT",
   "peerDependencies": {
     "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
     "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "@inertiajs/react": "^2.1.4"
   },
   "devDependencies": {
