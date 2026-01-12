@@ -24,7 +24,7 @@ abstract class Table implements Arrayable
 
     public function getAction(string $key): ?Action
     {
-        return collect($this->actions())->first(fn ($action) => $action->getKey() === $key);
+        return collect($this->actions())->first(fn ($action) => $action->name === base64_decode($key));
     }
 
     private function resourceResolved(): mixed

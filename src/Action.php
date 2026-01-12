@@ -11,19 +11,17 @@ use Illuminate\Contracts\Support\Arrayable;
 
 abstract class Action implements ActionInterface, Arrayable
 {
-    public string $key;
-
     public ?string $signedActionUrl = null;
 
     public function __construct(
-        public string $label,
+        public string $name,
         protected Closure $handle
     ) {}
 
-    public static function make(string $label, callable $handle): static
+    public static function make(string $name, callable $handle): static
     {
         return new static(
-            $label,
+            $name,
             $handle instanceof Closure ? $handle : $handle(...)
         );
     }
@@ -34,13 +32,13 @@ abstract class Action implements ActionInterface, Arrayable
 
         $signature = hash_hmac(
             'sha256',
-            $tableBase64Encoded.'|'.$this->label,
+            $tableBase64Encoded.'|'.base64_encode($this->name),
             config('app.key')
         );
 
         $this->signedActionUrl = route('inertiajs-datatables.actions', [
             'table' => $tableBase64Encoded,
-            'action' => $this->label,
+            'action' => base64_encode($this->name),
             'signature' => $signature,
         ]);
 
@@ -63,23 +61,10 @@ abstract class Action implements ActionInterface, Arrayable
         }
 
         return [
-            'name' => get_class($this),
-            'label' => $this->label,
+            'name' => $this->name,
             'url' => $this->signedActionUrl,
             ...$response,
         ];
-    }
-
-    public function key(string $key): static
-    {
-        $this->key = $key;
-
-        return $this;
-    }
-
-    public function getKey(): string
-    {
-        return $this->key ?? str($this->label)->kebab()->toString();
     }
 
     public function handle(mixed $model): mixed

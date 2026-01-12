@@ -188,7 +188,7 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
                                     key={index}
                                     className="border rounded-md px-3 py-1.5 font-medium text-sm disabled:bg-gray-50 disabled:cursor-not-allowed"
                                 >
-                                    {action.label}
+                                    {action.name}
                                 </button>
                             );
                         })}
