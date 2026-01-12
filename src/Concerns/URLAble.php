@@ -6,7 +6,7 @@ namespace Eklundlabs\InertiaDatatable\Concerns;
 
 use Closure;
 
-trait HasUrl
+trait URLAble
 {
     protected ?Closure $urlResolver = null;
 
