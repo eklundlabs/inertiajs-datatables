@@ -12,7 +12,7 @@
 ### 1. Install the Composer package
 
 ```bash
-composer require eklundlabs/inertiajs-datatables
+composer require eklundlabs/inertiajs-datatables:dev-main
 ```
 
 ### 2. Install the NPM package
