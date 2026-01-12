@@ -7,8 +7,6 @@ namespace Eklundlabs\InertiaDatatable;
 use Exception;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Searchable\Search;
-use Illuminate\Database\Query\Builder;
 
 abstract class Table implements Arrayable
 {
@@ -71,7 +69,7 @@ abstract class Table implements Arrayable
                 ]);
             } else {
                 foreach ($searchableColumns as $column) {
-                    $query = $query->orWhere($column, 'like', '%' . request('search_query') . '%');
+                    $query = $query->orWhere($column, 'like', '%'.request('search_query').'%');
                 }
             }
         }
