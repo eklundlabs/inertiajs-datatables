@@ -1,8 +1,7 @@
 export interface DataTableColumn {
     column: string;
     label: string;
-    sortable: boolean;
-    type: 'TextColumn' | 'ActionColumn';
+    type: 'TextColumn';
 }
 
 export interface DataTableAction {

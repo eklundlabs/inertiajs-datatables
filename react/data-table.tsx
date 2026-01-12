@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { DataTableAction, DataTableCell, DataTableQuery, DataTableResource, DataTableRow } from './index';
+import { ColumnTypeRenderers, type ColumnType } from './column-type-renderers';
 
 export function useDataTable(resource: DataTableResource) {
     const [search, _setSearch] = useState<string>(resource.searchQuery ?? '');
@@ -131,7 +132,17 @@ export function useDataTable(resource: DataTableResource) {
     }
 }
 
-export function DataTable({ resource }: { resource: DataTableResource }) {
+type ColumnRendererMap = Partial<
+    Record<ColumnType, React.ComponentType<any>>
+>;
+
+export function DataTable({
+    resource,
+    columnRenderers = {}
+}: {
+    resource: DataTableResource,
+    columnRenderers?: ColumnRendererMap
+}) {
     const table = useDataTable(resource);
 
     const handleAction = (action: DataTableAction) => {
@@ -243,14 +254,10 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
 
                                 {resource.columns.map((column) => {
                                     const _column = row[column.column];
-
+                                    const ColumnComponent = columnRenderers[column.type] ?? ColumnTypeRenderers[column.type];
                                     return (
                                         <td className="px-3.5 py-4" key={column.column}>
-                                            {_column.url ? (
-                                                <Link href={_column.url.link}>{_column.value}</Link>
-                                            ) : (
-                                                _column.value
-                                            )}
+                                            <ColumnComponent column={column} data={_column} />
                                         </td>
                                     );
                                 })}
