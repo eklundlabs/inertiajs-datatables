@@ -6,6 +6,7 @@ use Eklundlabs\InertiaDatatable\InertiaDatatableProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
@@ -28,6 +29,10 @@ class TestCase extends Orchestra
 
     public function getEnvironmentSetUp($app)
     {
+        // Sets random app.key during testing for the
+        // table actions signing to work properly
+        config()->set('app.key', Str::random(32));
+
         config()->set('database.default', 'testing');
 
         Schema::dropAllTables();
