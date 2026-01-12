@@ -2,7 +2,7 @@
 
 namespace Eklundlabs\InertiaDatatable\Tests\Fixtures;
 
-use Eklundlabs\InertiaDatatable\Action;
+use Eklundlabs\InertiaDatatable\Actions\Action;
 use Eklundlabs\InertiaDatatable\Columns\TextColumn;
 use Eklundlabs\InertiaDatatable\Table;
 
@@ -24,7 +24,7 @@ class UsersTable extends Table
     {
         return [
             Action::make('Delete', fn (User $user) => $user->delete())
-                ->requireConfirmation('Are you sure?'),
+                ->confirm('Are you sure?'),
             Action::make('Archive', fn (User $user) => $user->update(['archived' => true])),
         ];
     }

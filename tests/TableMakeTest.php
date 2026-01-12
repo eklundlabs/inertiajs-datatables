@@ -7,7 +7,7 @@ beforeEach(function () {
     /** @var $user User */
     $this->users = User::factory()->count(5)->create();
 
-    $this->table = UsersTable::make();
+    $this->table = UsersTable::make()->toArray();
 });
 
 it('sets table name as base64 value', function () {
