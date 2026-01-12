@@ -25,7 +25,7 @@ export function useDataTable(resource: DataTableResource) {
     const [query, _setQuery] = useState<DataTableQuery>({
         page: URLParams.get('page') ?? undefined,
         per_page: URLParams.get('per_page') ?? undefined,
-        search_query: URLParams.get('search_query') ?? undefined,
+        search: URLParams.get('search') ?? undefined,
     });
 
     const setQuery = (query: {[key: string]: number | string | undefined}) => {

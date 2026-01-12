@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Searchable\Search;
+use Illuminate\Database\Query\Builder;
 
 abstract class Table implements Arrayable
 {
@@ -62,12 +63,17 @@ abstract class Table implements Arrayable
         $query = $resource->query();
 
         if (request('search_query') && count($searchableColumns)) {
-            $s = (new Search)
-                ->registerModel(get_class($resource), $searchableColumns->toArray())
-                ->limitAspectResults(100)
-                ->search(request('search_query'));
-
-            $query->whereIn('id', $s->map->searchable->pluck('id')->toArray());
+            if (method_exists($this, 'searchUsing')) {
+                $query = app()->call([$this, 'searchUsing'], [
+                    'builder' => $query,
+                    'search' => request('search_query'),
+                    'searchableColumns' => $searchableColumns,
+                ]);
+            } else {
+                foreach ($searchableColumns as $column) {
+                    $query = $query->orWhere($column, 'like', '%' . request('search_query') . '%');
+                }
+            }
         }
 
         $paginator = $query->select(['id', ...$databaseColumnsToSelect])->paginate(request('per_page') ?? $this->perPageOptions[0]);

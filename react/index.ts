@@ -36,7 +36,7 @@ export type DataTableRow = {
 export type DataTableQuery = {
     page: string | null | number | undefined;
     per_page: string | null | number | undefined;
-    search_query: string | undefined;
+    search: string | undefined;
 }
 
 export interface DataTableResource {
