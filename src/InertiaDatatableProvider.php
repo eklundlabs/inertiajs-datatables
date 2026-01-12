@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Eklundlabs\InertiaDatatable;
 
-use Illuminate\Contracts\Foundation\Application;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -21,7 +20,7 @@ class InertiaDatatableProvider extends PackageServiceProvider
     {
         parent::register();
 
-        $this->app->bind(InertiajsDatatableOptions::class, function (Application $app) {
+        $this->app->bind(InertiajsDatatableOptions::class, function () {
             return new InertiajsDatatableOptions;
         });
     }
