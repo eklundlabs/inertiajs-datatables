@@ -32,7 +32,7 @@ Add the package paths using the `@source` directive in your `app.css` file:
 ```php
 use App\Models\User;
 use Eklundlabs\InertiaDatatable\Table;
-use Eklundlabs\InertiaDatatable\Action;
+use Eklundlabs\InertiaDatatable\Actions\Action;
 use Eklundlabs\InertiaDatatable\Columns\TextColumn;
 
 class Users extends Table
@@ -53,7 +53,7 @@ class Users extends Table
     {
         return [
             Action::make('Delete', fn (User $user) => $user->delete())
-                ->requireConfirmation('Are you sure you want to delete this user?'),
+                ->confirm('Are you sure you want to delete this user?'),
         ];
     }
 }

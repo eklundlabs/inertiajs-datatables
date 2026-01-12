@@ -10,7 +10,7 @@ use Illuminate\Contracts\Support\Arrayable;
 /**
  * @property null|string $url
  */
-abstract class Column implements ColumnInterface, Arrayable
+abstract class Column implements Arrayable, ColumnInterface
 {
     public bool $searchable = false;
 
