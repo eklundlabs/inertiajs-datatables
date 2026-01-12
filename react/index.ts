@@ -8,8 +8,10 @@ export interface DataTableColumn {
 export interface DataTableAction {
     label: string;
     name: string;
-    require_confirmation: boolean;
-    confirmation_text: string;
+    confirmable: {
+        text: string;
+        required: boolean;
+    }
 }
 
 export interface DataTableData {

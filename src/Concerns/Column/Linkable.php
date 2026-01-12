@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Eklundlabs\InertiaDatatable\Concerns;
+namespace Eklundlabs\InertiaDatatable\Concerns\Column;
 
 use Closure;
 
-trait URLAble
+trait Linkable
 {
     protected ?Closure $urlResolver = null;
 

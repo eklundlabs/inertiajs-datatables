@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Eklundlabs\InertiaDatatable;
 
+use Eklundlabs\InertiaDatatable\Contracts\ColumnInterface;
+
 /**
  * @property null|string $url
  */
-abstract class Column
+abstract class Column implements ColumnInterface
 {
     public bool $searchable = false;
 
-    final private function __construct(
+    public function __construct(
         public string $column,
         public string $label,
     ) {}

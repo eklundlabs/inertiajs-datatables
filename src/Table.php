@@ -5,24 +5,21 @@ declare(strict_types=1);
 namespace Eklundlabs\InertiaDatatable;
 
 use Exception;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Searchable\Search;
 
-abstract class Table
+abstract class Table implements Arrayable
 {
+    /** @var class-string<Model>|null */
     protected ?string $resource = null;
 
+    /** @var array<int> */
     protected array $perPageOptions = [10, 25, 50, 100];
 
-    final private function __construct() {}
-
-    abstract public function columns(): array;
-
-    abstract public function actions(): array;
-
-    public static function make(): array
+    public static function make(): static
     {
-        return (new static)->toResponse();
+        return app(static::class);
     }
 
     public function getAction(string $key): ?Action
@@ -35,6 +32,10 @@ abstract class Table
         return app($this->resource);
     }
 
+    abstract public function columns(): array;
+
+    abstract public function actions(): array;
+
     public function executeAction(Action $action, array $keys = []): void
     {
         foreach ($keys as $key) {
@@ -46,7 +47,7 @@ abstract class Table
         }
     }
 
-    public function toResponse(): array
+    public function toArray(): array
     {
         $resource = app($this->resource);
 
@@ -77,8 +78,8 @@ abstract class Table
         return [
             'table' => base64_encode(get_class($this)),
             'rows' => $paginatorArray['data'],
-            'columns' => array_map(fn ($column) => $column->toResponse(), $this->columns()),
-            'actions' => array_map(fn ($action) => $action->toResponse(), $this->actions()),
+            'columns' => $this->columns(),
+            'actions' => $this->actions(),
             'perPageOptions' => $this->perPageOptions,
             'searchQuery' => request('search_query'),
             'data' => $paginatorArray,

@@ -135,8 +135,8 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
     const table = useDataTable(resource);
 
     const handleAction = (action: DataTableAction) => {
-        const confirmation = action.require_confirmation
-            ? confirm(action.confirmation_text)
+        const confirmation = action.confirmable && action.confirmable.required
+            ? confirm(action.confirmable.text)
             : true;
 
         if (!confirmation) {
@@ -151,6 +151,8 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
             {
                 onSuccess: () => {
                     table.setSelectedKeys([]);
+
+                    alert('Success!');
                 },
             },
         );

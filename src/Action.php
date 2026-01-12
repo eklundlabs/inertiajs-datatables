@@ -5,16 +5,14 @@ declare(strict_types=1);
 namespace Eklundlabs\InertiaDatatable;
 
 use Closure;
+use Eklundlabs\InertiaDatatable\Contracts\ActionInterface;
+use Illuminate\Contracts\Support\Arrayable;
 
-class Action
+abstract class Action implements ActionInterface, Arrayable
 {
     public string $key;
 
-    public bool $requireConfirmation = false;
-
-    public string $confirmationText = '';
-
-    final private function __construct(
+    public function __construct(
         public string $label,
         protected Closure $handle
     ) {}
@@ -25,6 +23,20 @@ class Action
             $label,
             $handle instanceof Closure ? $handle : $handle(...)
         );
+    }
+
+    public function toArray(): array
+    {
+        $response = [
+            'name' => $this->getKey(),
+            'label' => $this->label,
+        ];
+
+        if (method_exists($this, 'confirmableToArray')) {
+            $response['confirmable'] = $this->confirmableToArray();
+        }
+
+        return $response;
     }
 
     public function key(string $key): static
@@ -42,23 +54,5 @@ class Action
     public function handle(mixed $model): mixed
     {
         return ($this->handle)($model);
-    }
-
-    public function requireConfirmation(string $confirmationText): static
-    {
-        $this->requireConfirmation = true;
-        $this->confirmationText = $confirmationText;
-
-        return $this;
-    }
-
-    public function toResponse(): array
-    {
-        return [
-            'name' => $this->getKey(),
-            'label' => $this->label,
-            'require_confirmation' => $this->requireConfirmation,
-            'confirmation_text' => $this->confirmationText,
-        ];
     }
 }
