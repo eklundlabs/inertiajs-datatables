@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Eklundlabs\InertiaDatatable;
 
-use Exception;
 use Closure;
-use Illuminate\Support\Facades\URL;
 use Eklundlabs\InertiaDatatable\Contracts\ActionInterface;
+use Exception;
 use Illuminate\Contracts\Support\Arrayable;
 
 abstract class Action implements ActionInterface, Arrayable
@@ -67,7 +66,7 @@ abstract class Action implements ActionInterface, Arrayable
             'name' => get_class($this),
             'label' => $this->label,
             'url' => $this->signedActionUrl,
-            ...$response
+            ...$response,
         ];
     }
 
