@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Eklundlabs\InertiaDatatable;
 
+use Exception;
 use Closure;
+use Illuminate\Support\Facades\URL;
 use Eklundlabs\InertiaDatatable\Contracts\ActionInterface;
 use Illuminate\Contracts\Support\Arrayable;
 
 abstract class Action implements ActionInterface, Arrayable
 {
     public string $key;
+
+    public ?string $signedActionUrl = null;
 
     public function __construct(
         public string $label,
@@ -25,18 +29,46 @@ abstract class Action implements ActionInterface, Arrayable
         );
     }
 
+    public function sign(Table $table): static
+    {
+        $tableBase64Encoded = base64_encode(get_class($table));
+
+        $signature = hash_hmac(
+            'sha256',
+            $tableBase64Encoded.'|'.$this->label,
+            config('app.key')
+        );
+
+        $this->signedActionUrl = route('inertiajs-datatables.actions', [
+            'table' => $tableBase64Encoded,
+            'action' => $this->label,
+            'signature' => $signature,
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * @throws Exception
+     */
     public function toArray(): array
     {
-        $response = [
-            'name' => $this->getKey(),
-            'label' => $this->label,
-        ];
+        if (is_null($this->signedActionUrl)) {
+            throw new Exception('Inertia datatable action has not been signed');
+        }
+
+        $response = [];
 
         if (method_exists($this, 'confirmableToArray')) {
             $response['confirmable'] = $this->confirmableToArray();
         }
 
-        return $response;
+        return [
+            'name' => get_class($this),
+            'label' => $this->label,
+            'url' => $this->signedActionUrl,
+            ...$response
+        ];
     }
 
     public function key(string $key): static

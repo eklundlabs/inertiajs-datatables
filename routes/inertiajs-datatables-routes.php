@@ -6,6 +6,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/data-tables/{table}/action/{action}', function (Request $request, string $table, string $action) {
+    $expectedSignature = hash_hmac(
+        'sha256',
+        $table.'|'.$action,
+        config('app.key')
+    );
+
+    abort_unless(hash_equals($expectedSignature, $request->query('signature')), 401);
+
     if (! app()->make(InertiajsDatatableOptions::class)->actionsIsEnabled()) {
         throw new Exception('Inertia datatables actions disabled');
     }
@@ -25,4 +33,4 @@ Route::post('/data-tables/{table}/action/{action}', function (Request $request, 
     $tableInstance->executeAction($actionToExecute, $request->get('keys', []));
 
     return back();
-});
+})->name('inertiajs-datatables.actions');

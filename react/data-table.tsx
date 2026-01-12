@@ -144,7 +144,7 @@ export function DataTable({ resource }: { resource: DataTableResource }) {
         }
 
         router.post(
-            `/data-tables/${resource.table}/action/${action.name}`,
+            action.url,
             {
                 keys: table.state.selectedKeys,
             },

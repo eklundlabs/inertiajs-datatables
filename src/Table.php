@@ -78,12 +78,22 @@ abstract class Table implements Arrayable
         return [
             'table' => base64_encode(get_class($this)),
             'rows' => $paginatorArray['data'],
-            'columns' => $this->columns(),
-            'actions' => $this->actions(),
+            'columns' => $this->toArrayable($this->columns()),
+            'actions' => $this->toArrayable($this->signActions($this->actions())),
             'perPageOptions' => $this->perPageOptions,
             'searchQuery' => request('search_query'),
             'data' => $paginatorArray,
         ];
+    }
+
+    public function signActions(array $actions): array
+    {
+        return array_map(fn (Action $action) => $action->sign($this), $actions);
+    }
+
+    private function toArrayable(array $items): array
+    {
+        return array_map(fn ($item) => $item->toArray(), $items);
     }
 
     /**

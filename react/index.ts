@@ -8,6 +8,7 @@ export interface DataTableColumn {
 export interface DataTableAction {
     label: string;
     name: string;
+    url: string;
     confirmable: {
         text: string;
         required: boolean;

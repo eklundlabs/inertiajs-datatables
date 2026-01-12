@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Eklundlabs\InertiaDatatable;
 
 use Eklundlabs\InertiaDatatable\Contracts\ColumnInterface;
+use Illuminate\Contracts\Support\Arrayable;
 
 /**
  * @property null|string $url
  */
-abstract class Column implements ColumnInterface
+abstract class Column implements ColumnInterface, Arrayable
 {
     public bool $searchable = false;
 
@@ -35,7 +36,7 @@ abstract class Column implements ColumnInterface
         return $this->column;
     }
 
-    public function toResponse(): array
+    public function toArray(): array
     {
         return [
             'column' => $this->column,
