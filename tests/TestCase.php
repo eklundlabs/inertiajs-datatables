@@ -2,11 +2,11 @@
 
 namespace Eklundlabs\InertiaDatatable\Tests;
 
+use Eklundlabs\InertiaDatatable\InertiaDatatableProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Schema\Blueprint;
-use Orchestra\Testbench\TestCase as Orchestra;
 use Illuminate\Support\Facades\Schema;
-use Eklundlabs\InertiaDatatable\InertiaDatatableProvider;
+use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
 {
@@ -43,8 +43,8 @@ class TestCase extends Orchestra
             $table->softDeletes();
         });
 
-//         foreach (\Illuminate\Support\Facades\File::allFiles(__DIR__ . '/../database/migrations') as $migration) {
-//            (include $migration->getRealPath())->up();
-//         }
+        //         foreach (\Illuminate\Support\Facades\File::allFiles(__DIR__ . '/../database/migrations') as $migration) {
+        //            (include $migration->getRealPath())->up();
+        //         }
     }
 }

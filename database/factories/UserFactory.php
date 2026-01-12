@@ -2,12 +2,12 @@
 
 namespace Eklundlabs\InertiaDatatable\Database\Factories;
 
+use Eklundlabs\InertiaDatatable\Tests\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Eklundlabs\InertiaDatatable\Tests\Models\User;
 
 /**
  * @extends Factory<User>

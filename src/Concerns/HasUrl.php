@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Eklundlabs\InertiaDatatable\Concerns;
@@ -12,6 +13,7 @@ trait HasUrl
     public function url(Closure $urlResolver): static
     {
         $this->urlResolver = $urlResolver;
+
         return $this;
     }
 

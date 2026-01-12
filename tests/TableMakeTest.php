@@ -1,7 +1,7 @@
 <?php
 
-use Eklundlabs\InertiaDatatable\Tests\Models\User;
 use Eklundlabs\InertiaDatatable\Tests\Fixtures\UsersTable;
+use Eklundlabs\InertiaDatatable\Tests\Models\User;
 
 beforeEach(function () {
     /** @var $user User */

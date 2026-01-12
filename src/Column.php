@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Eklundlabs\InertiaDatatable;
@@ -23,6 +24,7 @@ abstract class Column
     public function searchable(): static
     {
         $this->searchable = true;
+
         return $this;
     }
 

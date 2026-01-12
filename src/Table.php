@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Eklundlabs\InertiaDatatable;
@@ -21,7 +22,7 @@ abstract class Table
 
     public static function make(): array
     {
-        return (new static())->toResponse();
+        return (new static)->toResponse();
     }
 
     public function getAction(string $key): ?Action
@@ -60,10 +61,10 @@ abstract class Table
         $query = $resource->query();
 
         if (request('search_query') && count($searchableColumns)) {
-            $s = (new Search())
-                    ->registerModel(get_class($resource), $searchableColumns->toArray())
-                    ->limitAspectResults(100)
-                    ->search(request('search_query'));
+            $s = (new Search)
+                ->registerModel(get_class($resource), $searchableColumns->toArray())
+                ->limitAspectResults(100)
+                ->search(request('search_query'));
 
             $query->whereIn('id', $s->map->searchable->pluck('id')->toArray());
         }
@@ -85,7 +86,8 @@ abstract class Table
     }
 
     /**
-     * @param array<Model> $rows
+     * @param  array<Model>  $rows
+     *
      * @throws Exception
      */
     protected function transformRows(array $rows): array
@@ -102,7 +104,7 @@ abstract class Table
 
                 $transformed[$columnName] = [
                     'value' => $row->$columnName,
-                    'url'   => method_exists($column, 'resolveUrl') ? $column->resolveUrl($row) : null,
+                    'url' => method_exists($column, 'resolveUrl') ? $column->resolveUrl($row) : null,
                 ];
             }
 
