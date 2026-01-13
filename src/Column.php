@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Eklundlabs\InertiaDatatable;
 
-use Eklundlabs\InertiaDatatable\Concerns\Column\Mapable;
 use Eklundlabs\InertiaDatatable\Contracts\ColumnInterface;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
@@ -29,10 +28,6 @@ abstract class Column implements Arrayable, ColumnInterface
 
     public array $iconMappings = [];
 
-    /**
-     * @param Model $row
-     * @return array
-     */
     public function toDatatableRow(Model $row): array
     {
         return [
@@ -67,6 +62,7 @@ abstract class Column implements Arrayable, ColumnInterface
     public function setAttribute(string $key, mixed $value): static
     {
         $this->attributes[$key] = $value;
+
         return $this;
     }
 
@@ -78,17 +74,15 @@ abstract class Column implements Arrayable, ColumnInterface
     public function hasAbility(string $ability)
     {
         $abilities = collect($this->abilities)
-            ->filter(fn($a) => Str::afterLast($a, '\\') == $ability);
+            ->filter(fn ($a) => Str::afterLast($a, '\\') == $ability);
 
         dd($abilities->sole());
 
         dd(array_filter($this->abilities, fn ($a) => Str::afterLast($a, '\\') == $ability));
+
         return in_array($ability, class_uses($this), true);
     }
 
-    /**
-     * @return void
-     */
     public function applyMappings(): void
     {
         $mappings = $this->mappings;
@@ -101,12 +95,14 @@ abstract class Column implements Arrayable, ColumnInterface
     public function map(array $mappings): static
     {
         $this->mappings = $mappings;
+
         return $this;
     }
 
     public function mapIcon(array $iconMappings): static
     {
         $this->iconMappings = $iconMappings;
+
         return $this;
     }
 
@@ -122,10 +118,6 @@ abstract class Column implements Arrayable, ColumnInterface
         dd(str($name)->append('Ability')->pascal(), $arguments);
     }
 
-    /**
-     * @param Model $row
-     * @return array
-     */
     public function forRow(Model $row): array
     {
         $rawValue = $row->getAttribute($this->name());
@@ -141,20 +133,17 @@ abstract class Column implements Arrayable, ColumnInterface
         $this->applyMappings();
 
         return [
-            "value" => $this->value,
-            "icon" => "badge-check",
+            'value' => $this->value,
+            'icon' => 'badge-check',
         ];
     }
 
-    /**
-     * @return array
-     */
     public function toArray(): array
     {
         return [
-            "column" => $this->column,
-            "label" => $this->label,
-            "type" => class_basename(static::class),
+            'column' => $this->column,
+            'label' => $this->label,
+            'type' => class_basename(static::class),
             // "attributes" => $this->attributes(),
         ];
     }

@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace Eklundlabs\InertiaDatatable\Concerns\Column;
 
-use Closure;
-
 trait Mapable
 {
-    /** @var array<string, string> $mappings */
+    /** @var array<string, string> */
     public array $mappings = [];
 
     /**
-     * @param array<string, string> $mappings
+     * @param  array<string, string>  $mappings
      */
     public function map(array $mappings): static
     {
@@ -21,9 +19,6 @@ trait Mapable
         return $this;
     }
 
-    /**
-     * @return void
-     */
     public function mapableUpdateValue(): void
     {
         if (count($this->mappings) && isset($this->mappings[$this->value])) {
