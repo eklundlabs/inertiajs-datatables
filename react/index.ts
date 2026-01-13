@@ -1,7 +1,8 @@
 export interface DataTableColumn {
     column: string;
     label: string;
-    type: 'TextColumn';
+    type: string;
+    attributes?: Record<string, any>;
 }
 
 export interface DataTableAction {
@@ -26,6 +27,7 @@ export interface DataTableData {
 export interface DataTableCell {
     value: string | number;
     url: { link: string } | null;
+    attributes?: Record<string, any>;
 }
 
 export type DataTableRow = {

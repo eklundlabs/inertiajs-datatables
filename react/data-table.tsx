@@ -145,11 +145,25 @@ export function useDataTable(resource: DataTableResource) {
 
 type ColumnRendererMap = Partial<Record<ColumnType, React.ComponentType<any>>>;
 
-export type IconResolver = (name: string) => React.ReactNode;
+export type IconResolver = (
+  name: string
+) => React.ComponentType<any> | undefined;
 
 export const DataTableContext = React.createContext<{
   iconResolver?: IconResolver;
 } | null>(null);
+
+export function useDataTableContext() {
+  const ctx = React.useContext(DataTableContext);
+
+  if (!ctx) {
+    throw new Error(
+      "useDataTableContext must be used within a DataTable"
+    );
+  }
+
+  return ctx;
+}
 
 export function DataTable({
   resource,

@@ -128,19 +128,9 @@ abstract class Table implements Arrayable
             $transformed = ["id" => $row->id];
 
             foreach ($this->columns() as $column) {
-                $columnName = $column->name();
+                $formatter = new DatatableRowResolver();
 
-                // $transformed[$columnName] = [
-                //     "value" => $column->value($row->$columnName),
-                //     "url" => method_exists($column, "resolveUrl")
-                //         ? $column->resolveUrl($row)
-                //         : null,
-                // ];
-
-                $transformed[$columnName] = [
-                    "value" => $column->value($row->$columnName),
-                    "attributes" => $column->attributes(),
-                ];
+                $transformed[$column->name()] = $formatter->resolve($row, $column);
             }
 
             return $transformed;
