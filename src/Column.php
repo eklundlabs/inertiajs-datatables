@@ -14,10 +14,9 @@ abstract class Column implements Arrayable, ColumnInterface
 {
     public bool $searchable = false;
 
-    public function __construct(
-        public string $column,
-        public string $label,
-    ) {}
+    public array $attributes = [];
+
+    public function __construct(public string $column, public string $label) {}
 
     public static function make(string $column, string $label): static
     {
@@ -36,12 +35,28 @@ abstract class Column implements Arrayable, ColumnInterface
         return $this->column;
     }
 
+    public function value(mixed $value): mixed
+    {
+        return $value;
+    }
+
+    public function setAttribute(string $key, mixed $value): static
+    {
+        $this->attributes[$key] = $value;
+        return $this;
+    }
+
+    public function attributes()
+    {
+        return $this->attributes;
+    }
+
     public function toArray(): array
     {
         return [
-            'column' => $this->column,
-            'label' => $this->label,
-            'type' => class_basename(static::class),
+            "column" => $this->column,
+            "label" => $this->label,
+            "type" => class_basename(static::class),
         ];
     }
 }

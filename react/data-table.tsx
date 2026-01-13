@@ -1,332 +1,352 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router } from "@inertiajs/react";
 import {
-    ChevronLeft,
-    ChevronRight,
-    ChevronsLeft,
-    ChevronsRight,
-} from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
-import { DataTableAction, DataTableCell, DataTableQuery, DataTableResource, DataTableRow } from './index';
-import { ColumnTypeRenderers, type ColumnType } from './column-type-renderers';
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  DataTableAction,
+  DataTableCell,
+  DataTableQuery,
+  DataTableResource,
+  DataTableRow,
+} from "./index";
+import { ColumnTypeRenderers, type ColumnType } from "./column-type-renderers";
 
 export function useDataTable(resource: DataTableResource) {
-    const [search, _setSearch] = useState<string>(resource.searchQuery ?? '');
-    const [searchTimeoutTimer, setSearchTimeoutTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [search, _setSearch] = useState<string>(resource.searchQuery ?? "");
+  const [searchTimeoutTimer, setSearchTimeoutTimer] = useState<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
-    const [perPage, _setPerPage] = useState<string | number>(resource.data.per_page);
+  const [perPage, _setPerPage] = useState<string | number>(
+    resource.data.per_page,
+  );
 
-    const isFirstPage = resource.data.current_page === 1;
-    const isLastPage = resource.data.current_page === resource.data.last_page;
+  const isFirstPage = resource.data.current_page === 1;
+  const isLastPage = resource.data.current_page === resource.data.last_page;
 
-    const [selectedKeys, setSelectedKeys] = useState<(string | number)[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedKeys, setSelectedKeys] = useState<(string | number)[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const URLParams = new URLSearchParams(window.location.search);
+  const URLParams = new URLSearchParams(window.location.search);
 
-    const [query, _setQuery] = useState<DataTableQuery>({
-        page: URLParams.get('page') ?? undefined,
-        per_page: URLParams.get('per_page') ?? undefined,
-        search: URLParams.get('search') ?? undefined,
+  const [query, _setQuery] = useState<DataTableQuery>({
+    page: URLParams.get("page") ?? undefined,
+    per_page: URLParams.get("per_page") ?? undefined,
+    search: URLParams.get("search") ?? undefined,
+  });
+
+  const setQuery = (query: { [key: string]: number | string | undefined }) => {
+    _setQuery((q) => ({
+      ...q,
+      ...query,
+    }));
+  };
+
+  const allRowsAreSelected = useMemo(() => {
+    const allRowIds = resource.rows.map((row) => row.id);
+    return (
+      allRowIds.length > 0 && allRowIds.every((id) => selectedKeys.includes(id))
+    );
+  }, [selectedKeys]);
+
+  const setPerPage = (per_page: number | string) => {
+    _setPerPage(per_page);
+
+    setQuery({
+      per_page: per_page,
+      page: 1,
     });
+  };
 
-    const setQuery = (query: {[key: string]: number | string | undefined}) => {
-        _setQuery(q => ({
-            ...q,
-            ...query
-        }));
+  const setPage = (page: number | string) => {
+    setQuery({ page });
+  };
+
+  const setSearch = (query: string) => {
+    if (searchTimeoutTimer) {
+      clearTimeout(searchTimeoutTimer);
     }
 
-    const allRowsAreSelected = useMemo(() => {
-        const allRowIds = resource.rows.map((row) => row.id);
-        return (
-            allRowIds.length > 0 &&
-            allRowIds.every((id) => selectedKeys.includes(id))
-        );
-    }, [selectedKeys]);
+    _setSearch(query);
 
-    const setPerPage = (per_page: number | string) => {
-        _setPerPage(per_page);
+    const timer = setTimeout(() => {
+      setQuery({
+        search_query: query || undefined,
+        page: 1,
+      });
+    }, 500);
 
-        setQuery({
-            per_page: per_page,
-            page: 1,
-        });
-    }
+    setSearchTimeoutTimer(timer);
+  };
 
-    const setPage = (page: number | string) => {
-        setQuery({page});
-    }
+  const selectRow = (row: DataTableRow) => {
+    setSelectedKeys([...selectedKeys, row.id]);
+  };
 
-    const setSearch = (query: string) => {
-        if (searchTimeoutTimer) {
-            clearTimeout(searchTimeoutTimer);
-        }
+  const deselectRow = (row: DataTableRow) => {
+    setSelectedKeys(
+      selectedKeys.filter((key: string | number) => key !== row.id),
+    );
+  };
 
-        _setSearch(query);
+  const updateTable = () => {
+    setIsLoading(true);
 
-        const timer = setTimeout(() => {
-            setQuery({
-                search_query: query || undefined,
-                page: 1,
-            });
-        }, 500);
+    router.get(window.location.pathname, query, {
+      preserveState: true,
+      preserveScroll: true,
+      replace: true,
+      onFinish: () => {
+        setIsLoading(false);
+      },
+    });
+  };
 
-        setSearchTimeoutTimer(timer);
-    }
+  useEffect(() => {
+    updateTable();
+  }, [query]);
 
-    const selectRow = (row: DataTableRow) => { setSelectedKeys([...selectedKeys, row.id]) };
+  // useEffect(() => {
+  //     const timer = setTimeout(() => {
+  //         setQuery(q => ({
+  //             ...q,
+  //             search_query: search || undefined,
+  //             page: 1,
+  //         }));
+  //     }, 500);
+  //
+  //     return () => clearTimeout(timer);
+  // }, [search]);
 
-    const deselectRow = (row: DataTableRow) => { setSelectedKeys(selectedKeys.filter((key: string|number) => key !== row.id)) };
+  return {
+    state: {
+      isFirstPage,
+      isLastPage,
+      isLoading,
+      selectedKeys,
+      allRowsAreSelected,
+      search,
+      perPage,
+    },
 
-    const updateTable = () => {
-        setIsLoading(true);
-
-        router.get(
-            window.location.pathname,
-            query,
-            {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-                onFinish: () => {
-                    setIsLoading(false);
-                },
-            },
-        );
-    };
-
-    useEffect(() => {
-        updateTable()
-    }, [query]);
-
-    // useEffect(() => {
-    //     const timer = setTimeout(() => {
-    //         setQuery(q => ({
-    //             ...q,
-    //             search_query: search || undefined,
-    //             page: 1,
-    //         }));
-    //     }, 500);
-    //
-    //     return () => clearTimeout(timer);
-    // }, [search]);
-
-    return {
-        state: {
-            isFirstPage,
-            isLastPage,
-            isLoading,
-            selectedKeys,
-            allRowsAreSelected,
-            search,
-            perPage,
-        },
-
-        setPage,
-        setPerPage,
-        setSearch,
-        selectRow,
-        deselectRow,
-        setSelectedKeys,
-        setIsLoading,
-    }
+    setPage,
+    setPerPage,
+    setSearch,
+    selectRow,
+    deselectRow,
+    setSelectedKeys,
+    setIsLoading,
+  };
 }
 
-type ColumnRendererMap = Partial<
-    Record<ColumnType, React.ComponentType<any>>
->;
+type ColumnRendererMap = Partial<Record<ColumnType, React.ComponentType<any>>>;
+
+export type IconResolver = (name: string) => React.ReactNode;
+
+export const DataTableContext = React.createContext<{
+  iconResolver?: IconResolver;
+} | null>(null);
 
 export function DataTable({
-    resource,
-    columnRenderers = {}
+  resource,
+  columnRenderers = {},
+  iconResolver,
 }: {
-    resource: DataTableResource,
-    columnRenderers?: ColumnRendererMap
+  resource: DataTableResource;
+  columnRenderers?: ColumnRendererMap;
+  iconResolver?: IconResolver;
 }) {
-    const table = useDataTable(resource);
+  const table = useDataTable(resource);
 
-    const handleAction = (action: DataTableAction) => {
-        const confirmation = action.confirmable && action.confirmable.required
-            ? confirm(action.confirmable.text)
-            : true;
+  const handleAction = (action: DataTableAction) => {
+    const confirmation =
+      action.confirmable && action.confirmable.required
+        ? confirm(action.confirmable.text)
+        : true;
 
-        if (!confirmation) {
-            return;
-        }
+    if (!confirmation) {
+      return;
+    }
 
-        router.post(
-            action.url,
-            {
-                keys: table.state.selectedKeys,
-            },
-            {
-                onSuccess: () => {
-                    table.setSelectedKeys([]);
+    router.post(
+      action.url,
+      {
+        keys: table.state.selectedKeys,
+      },
+      {
+        onSuccess: () => {
+          table.setSelectedKeys([]);
 
-                    alert('Success!');
-                },
-            },
-        );
-    };
-
-    const toggleSelectAll = (checked: string | boolean) => {
-        checked ? table.setSelectedKeys(
-            resource.data.data.map((row) => row.id)
-        ) : table.setSelectedKeys([]);
-    };
-
-    return (
-        <div className="relative">
-            {table.state.isLoading && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-100/30"></div>
-            )}
-
-            <div className="flex flex-col justify-between md:flex-row md:items-center md:space-x-4 mb-4">
-                <input
-                    className="w-full md:max-w-md border rounded-md px-3 py-1.5 text-sm"
-                    type="search"
-                    placeholder="Search"
-                    value={table.state.search}
-                    onChange={(e) => table.setSearch(e.target.value)}
-                />
-                {resource.actions.length > 0 && (
-                    <div className="">
-                        {resource.actions.map((action, index) => {
-                            return (
-                                <button
-                                    disabled={table.state.selectedKeys.length < 1}
-                                    onClick={() => handleAction(action)}
-                                    key={index}
-                                    className="border rounded-md px-3 py-1.5 font-medium text-sm disabled:bg-gray-50 disabled:cursor-not-allowed"
-                                >
-                                    {action.name}
-                                </button>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-            <table className="relative min-w-full divide-y divide-gray-300 dark:divide-white/15">
-                <thead>
-                    <tr>
-                        <th className="w-8 px-3.5">
-                            <input
-                                type="checkbox"
-                                checked={table.state.allRowsAreSelected}
-                                onChange={(e) => toggleSelectAll(e.target.checked)}
-                            />
-                        </th>
-
-                        {resource.columns.map((column, index) => {
-                            return (
-                                <th key={index} className="px-3.5 py-4 text-left">
-                                    {column.label}
-                                </th>
-                            );
-                        })}
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-white/10">
-                    {resource.data.data.length === 0 ? (
-                        <tr className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                            <td
-                                colSpan={resource.columns.length + 1}
-                                className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400"
-                            >
-                                <p>
-                                    No results found
-                                </p>
-                            </td>
-                        </tr>
-                    ) : (
-                        resource.data.data.map((row, index) => (
-                            <tr key={index}>
-                                <td className="w-8 px-3.5 py-4">
-                                    <input
-                                        type="checkbox"
-                                        checked={table.state.selectedKeys.includes(row.id)}
-                                        onChange={(e) => e.target.checked ?
-                                            table.selectRow(row) :
-                                            table.deselectRow(row)
-                                        }
-                                    />
-                                </td>
-
-                                {resource.columns.map((column) => {
-                                    const _column = row[column.column];
-                                    const ColumnComponent = columnRenderers[column.type] ?? ColumnTypeRenderers[column.type];
-                                    return (
-                                        <td className="px-3.5 py-4" key={column.column}>
-                                            <ColumnComponent column={column} data={_column} />
-                                        </td>
-                                    );
-                                })}
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
-            <div className="mt-4 items-center justify-between md:flex">
-                <div className="flex flex-1">
-                    <div className="flex items-center gap-4">
-                        <div className="text-sm text-muted-foreground">
-                            Showing {resource.data.from} - {resource.data.to} of{' '}
-                            {resource.data.total} results
-                        </div>
-                    </div>
-
-                    <div className="ml-auto flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">
-                            Rows per page:
-                        </span>
-                        <select
-                            value={table.state.perPage}
-                            onChange={(e) => table.setPerPage(e.target.value)}
-                        >
-                            {resource.perPageOptions.map((perPageOption) => (
-                                <option key={perPageOption}>{perPageOption}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                <div className="mt-4 flex items-center justify-center gap-2 md:mt-0 md:ml-8">
-                    <button
-                        disabled={table.state.isFirstPage}
-                        onClick={() => table.setPage(1)}
-                        title="First page"
-                    >
-                        <ChevronsLeft className="h-4 w-4" />
-                    </button>
-
-                    <button
-                        disabled={table.state.isFirstPage}
-                        onClick={() => table.setPage(resource.data.current_page - 1)}
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                    </button>
-
-                    <div className="px-2 text-sm text-muted-foreground">
-                        Page {resource.data.current_page} of{' '}
-                        {resource.data.last_page}
-                    </div>
-
-                    <button
-                        disabled={table.state.isLastPage}
-                        onClick={() => table.setPage(resource.data.current_page + 1)}
-                    >
-                        <ChevronRight className="h-4 w-4" />
-                    </button>
-
-                    <button
-                        disabled={table.state.isLastPage}
-                        onClick={() => table.setPage(resource.data.last_page)}
-                        title="Last page"
-                    >
-                        <ChevronsRight className="h-4 w-4" />
-                    </button>
-                </div>
-            </div>
-        </div>
+          alert("Success!");
+        },
+      },
     );
+  };
+
+  const toggleSelectAll = (checked: string | boolean) => {
+    checked
+      ? table.setSelectedKeys(resource.data.data.map((row) => row.id))
+      : table.setSelectedKeys([]);
+  };
+
+  return (
+    <DataTableContext.Provider value={{ iconResolver }}>
+      <div className="relative">
+        {table.state.isLoading && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-100/30"></div>
+        )}
+
+        <div className="flex flex-col justify-between md:flex-row md:items-center md:space-x-4 mb-4">
+          <input
+            className="w-full md:max-w-md border rounded-md px-3 py-1.5 text-sm"
+            type="search"
+            placeholder="Search"
+            value={table.state.search}
+            onChange={(e) => table.setSearch(e.target.value)}
+          />
+          {resource.actions.length > 0 && (
+            <div className="">
+              {resource.actions.map((action, index) => {
+                return (
+                  <button
+                    disabled={table.state.selectedKeys.length < 1}
+                    onClick={() => handleAction(action)}
+                    key={index}
+                    className="border rounded-md px-3 py-1.5 font-medium text-sm disabled:bg-gray-50 disabled:cursor-not-allowed"
+                  >
+                    {action.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <table className="relative min-w-full divide-y divide-gray-300 dark:divide-white/15">
+          <thead>
+            <tr>
+              <th className="w-8 px-3.5">
+                <input
+                  type="checkbox"
+                  checked={table.state.allRowsAreSelected}
+                  onChange={(e) => toggleSelectAll(e.target.checked)}
+                />
+              </th>
+
+              {resource.columns.map((column, index) => {
+                return (
+                  <th key={index} className="px-3.5 py-4 text-left">
+                    {column.label}
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 dark:divide-white/10">
+            {resource.data.data.length === 0 ? (
+              <tr className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
+                <td
+                  colSpan={resource.columns.length + 1}
+                  className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400"
+                >
+                  <p>No results found</p>
+                </td>
+              </tr>
+            ) : (
+              resource.data.data.map((row, index) => (
+                <tr key={index}>
+                  <td className="w-8 px-3.5 py-4">
+                    <input
+                      type="checkbox"
+                      checked={table.state.selectedKeys.includes(row.id)}
+                      onChange={(e) =>
+                        e.target.checked
+                          ? table.selectRow(row)
+                          : table.deselectRow(row)
+                      }
+                    />
+                  </td>
+
+                  {resource.columns.map((column) => {
+                    const _column = row[column.column];
+                    const ColumnComponent =
+                      columnRenderers[column.type] ??
+                      ColumnTypeRenderers[column.type];
+                    return (
+                      <td className="px-3.5 py-4" key={column.column}>
+                        <ColumnComponent column={column} data={_column} />
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+        <div className="mt-4 items-center justify-between md:flex">
+          <div className="flex flex-1">
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {resource.data.from} - {resource.data.to} of{" "}
+                {resource.data.total} results
+              </div>
+            </div>
+
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                Rows per page:
+              </span>
+              <select
+                value={table.state.perPage}
+                onChange={(e) => table.setPerPage(e.target.value)}
+              >
+                {resource.perPageOptions.map((perPageOption) => (
+                  <option key={perPageOption}>{perPageOption}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center justify-center gap-2 md:mt-0 md:ml-8">
+            <button
+              disabled={table.state.isFirstPage}
+              onClick={() => table.setPage(1)}
+              title="First page"
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </button>
+
+            <button
+              disabled={table.state.isFirstPage}
+              onClick={() => table.setPage(resource.data.current_page - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+
+            <div className="px-2 text-sm text-muted-foreground">
+              Page {resource.data.current_page} of {resource.data.last_page}
+            </div>
+
+            <button
+              disabled={table.state.isLastPage}
+              onClick={() => table.setPage(resource.data.current_page + 1)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+
+            <button
+              disabled={table.state.isLastPage}
+              onClick={() => table.setPage(resource.data.last_page)}
+              title="Last page"
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </DataTableContext.Provider>
+  );
 }
