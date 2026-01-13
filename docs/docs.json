@@ -23,7 +23,8 @@
               "the-basics/usage",
               "the-basics/column-abilities",
               "the-basics/column-renderer",
-              "the-basics/icons-provider"
+              "the-basics/icons-provider",
+              "the-basics/searching"
             ]
           },
           {

@@ -1,0 +1,41 @@
+---
+title: Searching
+icon: magnifying-glass
+---
+
+### Searchable Columns
+
+To make a column searchable, you must explicitly mark it as searchable by using the `searchable` method.
+
+```php
+TextColumn::make('name', 'Name')
+    ->searchable();
+```
+
+### Customizing Search
+
+If you require more advanced search functionality than what is provided by this package, you can customize the search behavior by adding `searchUsing` to your table.
+In the following example, the `spatie/laravel-searchable` package is used to implement a custom search.
+
+```php
+use App\Models\User;
+use Eklundlabs\InertiaDatatable\Table;
+use Spatie\Searchable\Search;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+
+class Users extends Table
+{
+    protected ?string $resource = User::class;
+
+    public function searchUsing(Builder $builder, string $search, Collection $searchableColumns): Builder
+    {
+        $s = (new Search)
+            ->registerModel($this->resource, $searchableColumns->toArray())
+            ->limitAspectResults(100)
+            ->search($search);
+
+        return $builder->whereIn('id', $s->map->searchable->pluck('id')->toArray());
+    }
+}
+```
