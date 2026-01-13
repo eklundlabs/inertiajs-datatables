@@ -1,0 +1,41 @@
+---
+title: Column Renderer
+icon: pen
+---
+
+### Custom component renderer
+
+```tsx
+import { 
+  DataTable, 
+  type DataTableResource, 
+  type DataTableColumn, 
+  type DataTableCell 
+} from '@eklundlabs/inertia-datatable-react';
+
+const CustomTextColumn = ({
+  column,
+  data,
+}: {
+  column: DataTableColumn;
+  data: DataTableCell;
+}) => (
+  <div>
+    <span className="font-bold">{column.label}:</span>
+    {data.value}
+  </div>
+);
+
+export default function Users() {
+  const { props } = usePage<{
+    users: DataTableResource;
+  }>();
+
+  return (
+    <DataTable
+      resource={props.users}
+      columnRenderers={{ TextColumn: CustomTextColumn }}
+    />
+  );
+}
+```

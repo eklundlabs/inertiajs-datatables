@@ -1,0 +1,72 @@
+---
+title: 'Usage'
+icon: 'code'
+---
+
+## Your first datatable
+
+<Steps>
+<Step title="Define your datatable">
+```php app/Datatables/Users.php
+use App\Models\User;
+use Eklundlabs\InertiaDatatable\Table;
+use Eklundlabs\InertiaDatatable\Actions\Action;
+use Eklundlabs\InertiaDatatable\Columns\TextColumn;
+
+class Users extends Table
+{
+    protected ?string $resource = User::class;
+
+    public function columns(): array
+    {
+        return [
+            TextColumn::make('name', 'Namn')
+                ->searchable()
+                ->url(fn(User $user) => route('users.show', $user->id)),
+            TextColumn::make('email', 'Email'),
+        ];
+    }
+
+    public function actions(): array
+    {
+        return [
+            Action::make('Delete', fn (User $user) => $user->delete())
+                ->confirm('Are you sure you want to delete this user?'),
+        ];
+    }
+}
+```
+</Step>
+
+<Step title="Expose the datatable via the Inertia response">
+```php app/Http/Controllers/UsersController.php
+use Inertia\Inertia;
+use App\DataTables\Users;
+
+class UsersController extends Controller
+{
+    public function __invoke(Request $request)
+    {
+        return Inertia::render('users', [
+            'users' => Users::make()
+        ]);
+    }
+}
+```
+</Step>
+
+<Step title="Render it using the DataTable react component">
+```tsx resources/js/pages/users.tsx
+import { usePage } from '@inertiajs/react';
+import { DataTable, type DataTableResource } from '@eklundlabs/inertia-datatable-react';
+
+export default function UsersListing() {
+    const { props } = usePage<{
+        users: DataTableResource;
+    }>();
+
+    return (<DataTable resource={props.users} />);
+}
+```
+</Step>
+</Steps>
