@@ -21,10 +21,13 @@ abstract class Table implements Arrayable
         return app(static::class);
     }
 
+    /**
+     * @var string
+     */
     public function getAction(string $key): ?Action
     {
         return collect($this->actions())->first(
-            fn($action) => $action->name === base64_decode($key),
+            fn ($action) => $action->name === base64_decode($key),
         );
     }
 
@@ -33,9 +36,15 @@ abstract class Table implements Arrayable
         return app($this->resource);
     }
 
-    abstract public function columns(): array;
+    public function columns(): array
+    {
+        return [];
+    }
 
-    abstract public function actions(): array;
+    public function actions(): array
+    {
+        return [];
+    }
 
     public function executeAction(Action $action, array $keys = []): void
     {
@@ -53,64 +62,70 @@ abstract class Table implements Arrayable
         $resource = app($this->resource);
 
         $databaseColumnsToSelect = collect($this->columns())
-            ->map(fn(Column $column) => $column->name())
+            ->map(fn (Column $column) => $column->name())
             ->all();
 
         $searchableColumns = collect($this->columns())
-            ->filter(fn(Column $column) => $column->searchable)
-            ->pluck("column");
+            ->filter(fn (Column $column) => $column->searchable)
+            ->pluck('column');
 
         $query = $resource->query();
 
-        if (request("search_query") && count($searchableColumns)) {
-            if (method_exists($this, "searchUsing")) {
+        if (request('search_query') && count($searchableColumns)) {
+            if (method_exists($this, 'searchUsing')) {
                 $query = app()->call(
-                    [$this, "searchUsing"],
+                    [$this, 'searchUsing'],
                     [
-                        "builder" => $query,
-                        "search" => request("search_query"),
-                        "searchableColumns" => $searchableColumns,
+                        'builder' => $query,
+                        'search' => request('search_query'),
+                        'searchableColumns' => $searchableColumns,
                     ],
                 );
             } else {
                 foreach ($searchableColumns as $column) {
                     $query = $query->orWhere(
                         $column,
-                        "like",
-                        "%" . request("search_query") . "%",
+                        'like',
+                        '%'.request('search_query').'%',
                     );
                 }
             }
         }
 
         $paginator = $query
-            ->select(["id", ...$databaseColumnsToSelect])
-            ->paginate(request("per_page") ?? $this->perPageOptions[0]);
+            ->select(['id', ...$databaseColumnsToSelect])
+            ->paginate(request('per_page') ?? $this->perPageOptions[0]);
 
         $paginatorArray = $paginator->toArray();
-        $paginatorArray["data"] = $this->transformRows($paginator->items());
+        $paginatorArray['data'] = $this->transformRows($paginator->items());
 
         return [
-            "table" => base64_encode(get_class($this)),
-            "rows" => $paginatorArray["data"],
-            "columns" => $this->toArrayable($this->columns()),
-            "actions" => $this->toArrayable(
+            'table' => base64_encode(get_class($this)),
+            'rows' => $paginatorArray['data'],
+            'columns' => $this->toArrayable($this->columns()),
+            'actions' => $this->toArrayable(
                 $this->signActions($this->actions()),
             ),
-            "perPageOptions" => $this->perPageOptions,
-            "searchQuery" => request("search_query"),
-            "data" => $paginatorArray,
+            'perPageOptions' => $this->perPageOptions,
+            'searchQuery' => request('search_query'),
+            'data' => $paginatorArray,
         ];
     }
 
+    /**
+     * @var array
+     */
     public function signActions(array $actions): array
     {
-        return array_map(fn(Action $action) => $action->sign($this), $actions);
+        return array_map(fn (Action $action) => $action->sign($this), $actions);
     }
 
+    /**
+     * @var array
+     */
     private function toArrayable(array $items): array
     {
-        return array_map(fn($item) => $item->toArray(), $items);
+        return array_map(fn ($item) => $item->toArray(), $items);
     }
 
     /**
@@ -121,14 +136,14 @@ abstract class Table implements Arrayable
     protected function transformRows(array $rows): array
     {
         return array_map(function ($row) {
-            if (!isset($row->id)) {
-                throw new \Exception("Row id is required.");
+            if (! isset($row->id)) {
+                throw new \Exception('Row id is required.');
             }
 
-            $transformed = ["id" => $row->id];
+            $transformed = ['id' => $row->id];
 
             foreach ($this->columns() as $column) {
-                $formatter = new DatatableRowResolver();
+                $formatter = new DatatableRowResolver;
 
                 $transformed[$column->name()] = $formatter->resolve($row, $column);
             }

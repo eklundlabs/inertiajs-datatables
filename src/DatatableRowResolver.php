@@ -6,13 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class DatatableRowResolver
 {
-    /** @var mixed $originalRowValue */
+    /** @var mixed */
     public $originalRowValue;
 
-    /**
-     * @param Model $row
-     * @return array
-     */
     public function resolve(Model $row, Column $column): array
     {
         $this->originalRowValue = $row[$column->column];
