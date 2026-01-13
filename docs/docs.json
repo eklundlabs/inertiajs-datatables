@@ -22,12 +22,13 @@
             "pages": [
               "the-basics/usage",
               "the-basics/column-abilities",
-              "the-basics/column-renderer"
+              "the-basics/column-renderer",
+              "the-basics/icons-provider"
             ]
           },
           {
             "group": "Column Types",
-            "pages": ["column-types/text-column"]
+            "pages": ["column-types/text-column", "column-types/badge-column"]
           }
         ]
       }

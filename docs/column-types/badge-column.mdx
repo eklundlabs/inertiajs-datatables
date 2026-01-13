@@ -1,0 +1,11 @@
+---
+title: BadgeColumn
+---
+
+```php
+use Eklundlabs\InertiaDatatable\Columns\BadgeColumn;
+
+BadgeColumn::make(column: 'role', label: 'Role')
+    ->map(['admin' => 'Administrator'])
+    ->mapIcon(['admin' => 'BadgeChecked']);
+```

@@ -1,0 +1,21 @@
+---
+title: Icons Provider
+icon: icons
+---
+
+```tsx
+import * as Icons from 'lucide-react';
+
+export default function Users() {
+    const { props } = usePage<{
+        users: DataTableResource;
+    }>();
+
+    return (
+        <DataTable
+            resource={props.users}
+            iconResolver={(icon) => Icons[icon]}
+        />
+    );
+}
+```
