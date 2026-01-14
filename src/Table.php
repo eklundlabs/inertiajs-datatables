@@ -46,13 +46,13 @@ abstract class Table implements Arrayable
         return [];
     }
 
-    public function executeAction(Action $action, array $keys = []): void
+    public function executeAction(Action $action, array $keys = []): mixed
     {
         foreach ($keys as $key) {
             $model = $this->resourceResolved()->find($key);
 
             if ($model) {
-                $action->handle($model);
+                return $action->handle($model);
             }
         }
     }

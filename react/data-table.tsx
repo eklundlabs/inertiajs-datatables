@@ -14,134 +14,8 @@ import {
   DataTableRow,
 } from "./index";
 import { ColumnTypeRenderers, type ColumnType } from "./column-type-renderers";
-
-export function useDataTable(resource: DataTableResource) {
-  const [search, _setSearch] = useState<string>(resource.searchQuery ?? "");
-  const [searchTimeoutTimer, setSearchTimeoutTimer] = useState<ReturnType<
-    typeof setTimeout
-  > | null>(null);
-
-  const [perPage, _setPerPage] = useState<string | number>(
-    resource.data.per_page,
-  );
-
-  const isFirstPage = resource.data.current_page === 1;
-  const isLastPage = resource.data.current_page === resource.data.last_page;
-
-  const [selectedKeys, setSelectedKeys] = useState<(string | number)[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  const URLParams = new URLSearchParams(window.location.search);
-
-  const [query, _setQuery] = useState<DataTableQuery>({
-    page: URLParams.get("page") ?? undefined,
-    per_page: URLParams.get("per_page") ?? undefined,
-    search: URLParams.get("search") ?? undefined,
-  });
-
-  const setQuery = (query: { [key: string]: number | string | undefined }) => {
-    _setQuery((q) => ({
-      ...q,
-      ...query,
-    }));
-  };
-
-  const allRowsAreSelected = useMemo(() => {
-    const allRowIds = resource.rows.map((row) => row.id);
-    return (
-      allRowIds.length > 0 && allRowIds.every((id) => selectedKeys.includes(id))
-    );
-  }, [selectedKeys]);
-
-  const setPerPage = (per_page: number | string) => {
-    _setPerPage(per_page);
-
-    setQuery({
-      per_page: per_page,
-      page: 1,
-    });
-  };
-
-  const setPage = (page: number | string) => {
-    setQuery({ page });
-  };
-
-  const setSearch = (query: string) => {
-    if (searchTimeoutTimer) {
-      clearTimeout(searchTimeoutTimer);
-    }
-
-    _setSearch(query);
-
-    const timer = setTimeout(() => {
-      setQuery({
-        search_query: query || undefined,
-        page: 1,
-      });
-    }, 500);
-
-    setSearchTimeoutTimer(timer);
-  };
-
-  const selectRow = (row: DataTableRow) => {
-    setSelectedKeys([...selectedKeys, row.id]);
-  };
-
-  const deselectRow = (row: DataTableRow) => {
-    setSelectedKeys(
-      selectedKeys.filter((key: string | number) => key !== row.id),
-    );
-  };
-
-  const updateTable = () => {
-    setIsLoading(true);
-
-    router.get(window.location.pathname, query, {
-      preserveState: true,
-      preserveScroll: true,
-      replace: true,
-      onFinish: () => {
-        setIsLoading(false);
-      },
-    });
-  };
-
-  useEffect(() => {
-    updateTable();
-  }, [query]);
-
-  // useEffect(() => {
-  //     const timer = setTimeout(() => {
-  //         setQuery(q => ({
-  //             ...q,
-  //             search_query: search || undefined,
-  //             page: 1,
-  //         }));
-  //     }, 500);
-  //
-  //     return () => clearTimeout(timer);
-  // }, [search]);
-
-  return {
-    state: {
-      isFirstPage,
-      isLastPage,
-      isLoading,
-      selectedKeys,
-      allRowsAreSelected,
-      search,
-      perPage,
-    },
-
-    setPage,
-    setPerPage,
-    setSearch,
-    selectRow,
-    deselectRow,
-    setSelectedKeys,
-    setIsLoading,
-  };
-}
+import { useDataTable } from './table';
+import classNames from 'classnames'
 
 type ColumnRendererMap = Partial<Record<ColumnType, React.ComponentType<any>>>;
 
@@ -176,7 +50,7 @@ export function DataTable({
 }) {
   const table = useDataTable(resource);
 
-  const handleAction = (action: DataTableAction) => {
+  const handleAction = (action: DataTableAction, row: DataTableRow|null) => {
     const confirmation =
       action.confirmable && action.confirmable.required
         ? confirm(action.confirmable.text)
@@ -186,13 +60,15 @@ export function DataTable({
       return;
     }
 
+    const keys = row ? [row.id] : table.state.selectedKeys;
+
     router.post(
       action.url,
-      {
-        keys: table.state.selectedKeys,
-      },
+      { keys },
       {
         onSuccess: () => {
+          if (action.isLink) return
+
           table.setSelectedKeys([]);
 
           alert("Success!");
@@ -224,9 +100,9 @@ export function DataTable({
               onChange={(e) => table.setSearch(e.target.value)}
             />
           )}
-          {resource.actions.length > 0 && (
+          {resource.actions.filter(a => a.isBulk).length > 0 && (
             <div className="ml-auto">
-              {resource.actions.map((action, index) => {
+              {resource.actions.filter(a => a.isBulk).map((action, index) => {
                 return (
                   <button
                     disabled={table.state.selectedKeys.length < 1}
@@ -244,13 +120,15 @@ export function DataTable({
         <table className="relative min-w-full divide-y divide-gray-300 dark:divide-white/15">
           <thead>
             <tr>
-              <th className="w-8 px-3.5">
-                <input
-                  type="checkbox"
-                  checked={table.state.allRowsAreSelected}
-                  onChange={(e) => toggleSelectAll(e.target.checked)}
-                />
-              </th>
+              {resource.actions.filter(a => a.isBulk).length > 0 && (
+                <th className="w-8 px-3.5">
+                  <input
+                    type="checkbox"
+                    checked={table.state.allRowsAreSelected}
+                    onChange={(e) => toggleSelectAll(e.target.checked)}
+                  />
+                </th>
+              )}
 
               {resource.columns.map((column, index) => {
                 return (
@@ -274,17 +152,19 @@ export function DataTable({
             ) : (
               resource.data.data.map((row, index) => (
                 <tr key={index}>
-                  <td className="w-8 px-3.5 py-4">
-                    <input
-                      type="checkbox"
-                      checked={table.state.selectedKeys.includes(row.id)}
-                      onChange={(e) =>
-                        e.target.checked
-                          ? table.selectRow(row)
-                          : table.deselectRow(row)
-                      }
-                    />
-                  </td>
+                  {resource.actions.filter(a => a.isBulk).length > 0 && (
+                    <td className="w-8 px-3.5 py-4">
+                      <input
+                        type="checkbox"
+                        checked={table.state.selectedKeys.includes(row.id)}
+                        onChange={(e) =>
+                          e.target.checked
+                            ? table.selectRow(row)
+                            : table.deselectRow(row)
+                        }
+                      />
+                    </td>
+                  )}
 
                   {resource.columns.map((column) => {
                     const _column = row[column.column];
@@ -297,6 +177,30 @@ export function DataTable({
                       </td>
                     );
                   })}
+
+                  <td className="text-right space-x-2">
+                    <div className="flex gap-1.5 justify-end">
+                      {resource.actions.map((action, index) => {
+                        const Icon = iconResolver?.(action.icon?.name ?? "");
+
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => handleAction(action, row)}
+                            className={classNames(
+                              'inline-flex items-center gap-1.5 border rounded-sm bg-white px-3 py-1 font-medium text-xs border-gray-300',
+                              {
+                                'cursor-pointer': true
+                              }
+                            )}
+                          >
+                            {Icon && <Icon className="h-3 w-3" />}
+                            {action.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </td>
                 </tr>
               ))
             )}

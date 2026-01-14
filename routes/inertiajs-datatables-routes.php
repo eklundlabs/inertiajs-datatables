@@ -30,7 +30,7 @@ Route::post('/data-tables/{table}/action/{action}', function (Request $request, 
         abort(404, 'Action not found');
     }
 
-    $tableInstance->executeAction($actionToExecute, $request->get('keys', []));
+    $response = $tableInstance->executeAction($actionToExecute, $request->get('keys', []));
 
-    return back();
+    return $actionToExecute->isLink ? $response : back();
 })->name('inertiajs-datatables.actions');

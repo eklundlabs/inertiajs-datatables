@@ -13,6 +13,12 @@ abstract class Action implements ActionInterface, Arrayable
 {
     public ?string $signedActionUrl = null;
 
+    public bool $isBulk = false;
+
+    public bool $isLink = false;
+
+    public ?Icon $icon = null;
+
     public function __construct(
         public string $name,
         protected Closure $handle
@@ -45,6 +51,20 @@ abstract class Action implements ActionInterface, Arrayable
         return $this;
     }
 
+    public function asLink()
+    {
+        $this->isLink = true;
+
+        return $this;
+    }
+
+    public function asBulk()
+    {
+        $this->isBulk = true;
+
+        return $this;
+    }
+
     /**
      * @throws Exception
      */
@@ -56,15 +76,24 @@ abstract class Action implements ActionInterface, Arrayable
 
         $response = [];
 
-        if (method_exists($this, 'confirmableToArray')) {
+        if (!$this->isLink && method_exists($this, 'confirmableToArray')) {
             $response['confirmable'] = $this->confirmableToArray();
         }
 
         return [
             'name' => $this->name,
             'url' => $this->signedActionUrl,
+            'isBulk' => $this->isBulk,
+            'isLink' => $this->isLink,
+            'icon' => $this->icon,
             ...$response,
         ];
+    }
+
+    public function icon(string|Icon $icon)
+    {
+        $this->icon = $icon instanceof Icon ?: new Icon($icon);
+        return $this;
     }
 
     public function handle(mixed $model): mixed

@@ -12,11 +12,11 @@
   "author": "",
   "license": "MIT",
   "peerDependencies": {
+    "@inertiajs/react": "^2.1.4",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "@inertiajs/react": "^2.1.4"
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
     "@types/react": "^19.2.8",
@@ -24,6 +24,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "classnames": "^2.5.1",
     "lucide-react": "^0.562.0"
   }
 }
