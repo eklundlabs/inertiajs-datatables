@@ -1,0 +1,43 @@
+---
+title: Actions
+icon: brackets-curly
+---
+
+### Adding Actions
+
+To add an action to your table, define it within the `actions` method.
+Action buttons are displayed on the far right side of each row.
+
+```php
+class Users extends Table
+{
+    protected ?string $resource = User::class;
+
+    public function actions(): array
+    {
+        return [
+            Action::make('Wave', fn (User $user) => logger("Hello user {$user->name}"))
+        ];
+    }
+}
+```
+
+### Bulk Actions
+
+By default, an action processes only the row to which it belongs. However, actions can be marked as bulk actions, allowing them to be executed on multiple selected rows at once.
+
+```php
+Action::make('Wave', fn (User $user) => logger("Hello user {$user->name}"))
+    ->asBulk()
+```
+
+### Links
+
+In some cases, you may want to add an “Edit” or other link for each row. This is where `asLink` becomes useful.
+When an action is marked with `asLink`, the custom response returned by the handler will be used.
+
+```php
+Action::make('Edit', fn (User $user) => redirect()->route('users.show', $user))
+    ->asLink()
+    ->icon('UserRoundPen')
+```
