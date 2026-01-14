@@ -76,7 +76,7 @@ abstract class Action implements ActionInterface, Arrayable
 
         $response = [];
 
-        if (!$this->isLink && method_exists($this, 'confirmableToArray')) {
+        if (! $this->isLink && method_exists($this, 'confirmableToArray')) {
             $response['confirmable'] = $this->confirmableToArray();
         }
 
@@ -93,6 +93,7 @@ abstract class Action implements ActionInterface, Arrayable
     public function icon(string|Icon $icon)
     {
         $this->icon = $icon instanceof Icon ?: new Icon($icon);
+
         return $this;
     }
 
