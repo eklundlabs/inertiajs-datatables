@@ -58,6 +58,7 @@ abstract class Column implements Arrayable, ColumnInterface
             'column' => $this->column,
             'label' => $this->label,
             'type' => class_basename(static::class),
+            'searchable' => $this->searchable,
         ];
     }
 }

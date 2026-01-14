@@ -215,15 +215,17 @@ export function DataTable({
         )}
 
         <div className="flex flex-col justify-between md:flex-row md:items-center md:space-x-4 mb-4">
-          <input
-            className="w-full md:max-w-md border rounded-md px-3 py-1.5 text-sm"
-            type="search"
-            placeholder="Search"
-            value={table.state.search}
-            onChange={(e) => table.setSearch(e.target.value)}
-          />
+          {resource.columns.filter(c => c.searchable).length > 0 && (
+            <input
+              className="w-full md:max-w-md border rounded-md px-3 py-1.5 text-sm"
+              type="search"
+              placeholder="Search"
+              value={table.state.search}
+              onChange={(e) => table.setSearch(e.target.value)}
+            />
+          )}
           {resource.actions.length > 0 && (
-            <div className="">
+            <div className="ml-auto">
               {resource.actions.map((action, index) => {
                 return (
                   <button
