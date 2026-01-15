@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Eklundlabs\InertiaDatatable;
 
 use Exception;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 abstract class Table implements Arrayable
@@ -58,7 +58,7 @@ abstract class Table implements Arrayable
         }
     }
 
-    public function resource(): Builder | null
+    public function resource(): ?Builder
     {
         return null;
     }
