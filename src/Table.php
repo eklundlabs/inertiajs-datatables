@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Eklundlabs\InertiaDatatable;
 
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -57,9 +58,14 @@ abstract class Table implements Arrayable
         }
     }
 
+    public function resource(): Builder | null
+    {
+        return null;
+    }
+
     public function toArray(): array
     {
-        $resource = app($this->resource);
+        $query = $this->resource ? app($this->resource) : $this->resource();
 
         $databaseColumnsToSelect = collect($this->columns())
             ->map(fn (Column $column) => $column->name())
@@ -68,8 +74,6 @@ abstract class Table implements Arrayable
         $searchableColumns = collect($this->columns())
             ->filter(fn (Column $column) => $column->searchable)
             ->pluck('column');
-
-        $query = $resource->query();
 
         if (request('search_query') && count($searchableColumns)) {
             if (method_exists($this, 'searchUsing')) {
