@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 
 abstract class Table implements Arrayable
 {
-    /** @var class-string<Model>|null */
-    protected ?string $resource = null;
+    /** @var class-string<Model> */
+    protected string $resource;
 
     /** @var array<int> */
     protected array $perPageOptions = [10, 25, 50, 100];
@@ -58,14 +58,14 @@ abstract class Table implements Arrayable
         }
     }
 
-    public function resource(): ?Builder
+    public function query(): Builder
     {
-        return null;
+        return app($this->resource)->query();
     }
 
     public function toArray(): array
     {
-        $query = $this->resource ? app($this->resource) : $this->resource();
+        $query = $this->query();
 
         $databaseColumnsToSelect = collect($this->columns())
             ->map(fn (Column $column) => $column->name())
