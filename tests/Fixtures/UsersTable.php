@@ -8,7 +8,7 @@ use Eklundlabs\InertiaDatatable\Table;
 
 class UsersTable extends Table
 {
-    protected ?string $resource = \Eklundlabs\InertiaDatatable\Tests\Models\User::class;
+    protected string $resource = \Eklundlabs\InertiaDatatable\Tests\Models\User::class;
 
     public function columns(): array
     {
